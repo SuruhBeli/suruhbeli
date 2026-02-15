@@ -190,7 +190,7 @@
     />
 
     <button class="btn-lokasi" onclick="ambilLokasi()">
-      📍 Ambil Lokasi Otomatis
+      📍 Ambil Lokasi Otomatis (mode uji)
     </button>
 
     <button class="btn-google" onclick="loginGoogle()">
@@ -224,7 +224,50 @@
   firebase.initializeApp(firebaseConfig);
   const auth = firebase.auth();
   const db = firebase.firestore();
-
+  const MODE_TEST_LOCATION = false; // ← NANTI UBAH JADI false UNTUK AKTIFKAN GPS
+  
+  // HANDLE HASIL REDIRECT GOOGLE
+  auth.getRedirectResult().then(async (result)=>{
+    if(result.user){
+      showPopup("Menyimpan data akun...");
+  
+      const user = result.user;
+  
+      // Ambil data sementara
+      const noHP = localStorage.getItem("temp_nohp");
+      const lat = localStorage.getItem("temp_lat");
+      const lng = localStorage.getItem("temp_lng");
+  
+      const userRef = db.collection("users").doc(user.uid);
+      const doc = await userRef.get();
+  
+      if(!doc.exists){
+        await userRef.set({
+          uid: user.uid,
+          nama: user.displayName || "",
+          email: user.email,
+          noHP: noHP || "",
+          lat: lat ? parseFloat(lat) : null,
+          lng: lng ? parseFloat(lng) : null,
+          role: "user",
+          createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+      }
+  
+      // Hapus data sementara
+      localStorage.removeItem("temp_nohp");
+      localStorage.removeItem("temp_lat");
+      localStorage.removeItem("temp_lng");
+  
+      showPopup("Login berhasil ✔", false);
+  
+      setTimeout(()=>{
+        window.location.href = "index.html";
+      }, 1200);
+    }
+  }).catch(err=>{
+    console.error("Redirect error:", err);
+  });
   let latUser = null;
   let lngUser = null;
 
@@ -245,88 +288,107 @@
   }
 
   // AMBIL LOKASI DENGAN POPUP
-  function ambilLokasi(){
-    if(!navigator.geolocation){
-      showPopup("GPS tidak didukung di perangkat ini", false);
-      hidePopup();
-      return;
-    }
+function ambilLokasi(){
+  showPopup("Memproses lokasi...");
 
-    showPopup("Mengambil lokasi...");
+  /* ===============================
+     MODE TEST (LOKASI DEFAULT)
+     Jika ingin aktifkan GPS asli:
+     1. Ubah MODE_TEST_LOCATION = false
+     2. Maka kode GPS di bawah akan aktif otomatis
+     =============================== */
+  if(MODE_TEST_LOCATION){
+    // LOKASI DEFAULT UNTUK UJI COBA
+    latUser = "default";
+    lngUser = "default";
 
-    navigator.geolocation.getCurrentPosition(
-      (pos)=>{
-        latUser = pos.coords.latitude;
-        lngUser = pos.coords.longitude;
+    // Simpan juga ke localStorage agar konsisten saat redirect
+    localStorage.setItem("temp_lat", latUser);
+    localStorage.setItem("temp_lng", lngUser);
 
-        showPopup("Lokasi berhasil diambil ✔", false);
-        hidePopup();
-      },
-      ()=>{
-        showPopup("Gagal mengambil lokasi", false);
-        hidePopup();
-      },
-      { enableHighAccuracy:true }
-    );
+    showPopup("Lokasi default digunakan (Mode Uji) ✔", false);
+    hidePopup();
+    return;
   }
+
+  /* ===============================
+     MODE PRODUKSI (GPS ASLI)
+     AKTIF JIKA MODE_TEST_LOCATION = false
+     =============================== */
+  if(!navigator.geolocation){
+    showPopup("GPS tidak didukung di perangkat ini", false);
+    hidePopup();
+    return;
+  }
+
+  navigator.geolocation.getCurrentPosition(
+    (pos)=>{
+      latUser = pos.coords.latitude;
+      lngUser = pos.coords.longitude;
+
+      localStorage.setItem("temp_lat", latUser);
+      localStorage.setItem("temp_lng", lngUser);
+
+      showPopup("Lokasi berhasil diambil ✔", false);
+      hidePopup();
+    },
+    ()=>{
+      showPopup("Gagal mengambil lokasi", false);
+      hidePopup();
+    },
+    { enableHighAccuracy:true }
+  );
+}
 
   // LOGIN GOOGLE
-  async function loginGoogle(){
-    const noHP = document.getElementById("noHP").value.trim();
+async function loginGoogle(){
+  const noHP = document.getElementById("noHP").value.trim();
 
-    if(!noHP){
-      showPopup("Isi nomor HP dulu ya", false);
-      hidePopup();
-      return;
-    }
-
-    if(latUser === null || lngUser === null){
-      showPopup("Ambil lokasi dulu ya", false);
-      hidePopup();
-      return;
-    }
-
-    try{
-      showPopup("Masuk dengan Google...");
-
-      const provider = new firebase.auth.GoogleAuthProvider();
-      const result = await auth.signInWithPopup(provider);
-      const user = result.user;
-
-      const userRef = db.collection("users").doc(user.uid);
-      const doc = await userRef.get();
-
-      if(!doc.exists){
-        await userRef.set({
-          uid: user.uid,
-          nama: user.displayName || "",
-          email: user.email,
-          noHP: noHP,
-          lat: latUser,
-          lng: lngUser,
-          role: "user",
-          createdAt: firebase.firestore.FieldValue.serverTimestamp()
-        });
-      }
-
-      popupText.innerText = "Login berhasil ✔";
-      loader.style.display = "none";
-
-      setTimeout(()=>{
-        window.location.href = "index.html";
-      }, 1000);
-
-    }catch(err){
-      console.error(err);
-      showPopup("Login gagal, coba lagi", false);
-      hidePopup();
-    }
+  if(noHP.length < 10){
+    showPopup("Nomor HP tidak valid", false);
+    hidePopup();
+    return;
   }
 
-  // AUTO LOGIN
+  // Jika bukan mode test, baru wajib ambil lokasi
+  if(!MODE_TEST_LOCATION && (latUser === null || lngUser === null)){
+    showPopup("Ambil lokasi dulu ya", false);
+    hidePopup();
+    return;
+  }
+  
+  // Jika mode test & belum klik tombol lokasi
+  if(MODE_TEST_LOCATION && (latUser === null || lngUser === null)){
+    // otomatis isi default
+    latUser = "default";
+    lngUser = "default";
+  }
+
+  try{
+    showPopup("Mengarahkan ke Google...");
+
+    const provider = new firebase.auth.GoogleAuthProvider();
+
+    // SIMPAN DATA SEMENTARA (biar tidak hilang saat redirect)
+    localStorage.setItem("temp_nohp", noHP);
+    localStorage.setItem("temp_lat", latUser);
+    localStorage.setItem("temp_lng", lngUser);
+
+    // PAKAI REDIRECT (WAJIB UNTUK HP)
+    await auth.signInWithRedirect(provider);
+
+  }catch(err){
+    console.error(err);
+    showPopup("Login gagal, coba lagi", false);
+    hidePopup();
+  }
+}
+
   auth.onAuthStateChanged(async (user)=>{
     if(user){
       const doc = await db.collection("users").doc(user.uid).get();
+  
+      // Kalau data user BELUM ADA → tetap di register
       if(doc.exists){
         window.location.href = "index.html";
       }

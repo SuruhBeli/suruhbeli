@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>SuruhBeli - Beranda</title>
+
+  <!-- Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Firebase v8 (konsisten dengan project kamu sebelumnya) -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+
+  <style>
+    *{
+      margin:0;
+      padding:0;
+      box-sizing:border-box;
+      font-family:'Nunito',sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body{
+      background:#FFF7ED; /* Cream */
+      color:#7C2D12; /* Coklat Soft */
+      min-height:100vh;
+      display:flex;
+      flex-direction:column;
+    }
+
+    header{
+      height:24px; /* spacing fullscreen feel */
+    }
+
+    .container{
+      padding:16px;
+      flex:1;
+      display:flex;
+      flex-direction:column;
+      gap:16px;
+    }
+
+    /* ===== CARD HEADER ===== */
+    .top-card{
+      background:white;
+      border-radius:18px;
+      padding:16px;
+      box-shadow:0 8px 20px rgba(0,0,0,0.05);
+      border:1px solid #FED7AA;
+    }
+
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      margin-bottom:8px;
+    }
+
+    .brand img{
+      width:42px;
+      height:42px;
+      border-radius:12px;
+      object-fit:cover;
+    }
+
+    .brand h1{
+      font-size:20px;
+      font-weight:800;
+      color:#7C2D12;
+    }
+
+    .wilayah{
+      font-size:13px;
+      color:#9a6b4f;
+      margin-top:2px;
+    }
+
+    .welcome{
+      margin-top:10px;
+      font-size:14px;
+      font-weight:600;
+    }
+
+    /* ===== BANNER INFO ===== */
+    .banner{
+      background:linear-gradient(135deg,#FB923C,#F97316);
+      color:white;
+      border-radius:18px;
+      padding:18px;
+      box-shadow:0 10px 25px rgba(251,146,60,0.35);
+    }
+
+    .banner h2{
+      font-size:18px;
+      margin-bottom:6px;
+      font-weight:800;
+    }
+
+    .banner p{
+      font-size:14px;
+      opacity:0.95;
+      line-height:1.5;
+    }
+
+    /* ===== GRID LAYANAN ===== */
+    .section-title{
+      font-size:16px;
+      font-weight:800;
+      margin-top:4px;
+    }
+
+    .grid{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:14px;
+    }
+
+    .service-card{
+      background:white;
+      border-radius:18px;
+      padding:18px 14px;
+      text-align:center;
+      box-shadow:0 8px 18px rgba(0,0,0,0.05);
+      border:1px solid #FED7AA;
+      cursor:pointer;
+      transition:0.2s ease;
+      user-select:none;
+    }
+
+    .service-card:active{
+      transform:scale(0.97);
+    }
+
+    .service-icon{
+      font-size:28px;
+      margin-bottom:6px;
+    }
+
+    .service-title{
+      font-weight:800;
+      font-size:14px;
+    }
+
+    .service-desc{
+      font-size:12px;
+      color:#8a6a58;
+      margin-top:4px;
+    }
+
+    /* ===== CTA BUTTON ===== */
+    .cta{
+      margin-top:auto;
+    }
+
+    .btn-order{
+      width:100%;
+      padding:16px;
+      border:none;
+      border-radius:16px;
+      background:#FB923C;
+      color:white;
+      font-size:17px;
+      font-weight:800;
+      box-shadow:0 8px 20px rgba(251,146,60,0.45);
+      cursor:pointer;
+      transition:0.2s ease;
+    }
+
+    .btn-order:active{
+      transform:scale(0.98);
+    }
+
+    .footer{
+      text-align:center;
+      font-size:12px;
+      color:#9a6b4f;
+      padding-bottom:10px;
+    }
+
+    /* ===== AUTH LOCK OVERLAY ===== */
+    .auth-lock{
+      position:fixed;
+      inset:0;
+      background:rgba(0,0,0,0.35);
+      backdrop-filter:blur(3px);
+      display:none;
+      z-index:99;
+    }
+
+    /* ===== POPUP BOTTOM LOGIN ===== */
+    .login-popup{
+      position:fixed;
+      bottom:-100%;
+      left:0;
+      width:100%;
+      background:white;
+      border-radius:24px 24px 0 0;
+      padding:20px 18px 24px;
+      box-shadow:0 -10px 30px rgba(0,0,0,0.2);
+      transition:0.4s ease;
+      z-index:100;
+    }
+
+    .login-popup.active{
+      bottom:0;
+    }
+
+    .popup-title{
+      font-size:18px;
+      font-weight:800;
+      text-align:center;
+      margin-bottom:6px;
+      color:#7C2D12;
+    }
+
+    .popup-desc{
+      font-size:13px;
+      text-align:center;
+      color:#8a6a58;
+      margin-bottom:16px;
+      line-height:1.5;
+    }
+
+    .btn-login{
+      width:100%;
+      padding:14px;
+      border:none;
+      border-radius:14px;
+      background:#FB923C;
+      color:white;
+      font-weight:800;
+      font-size:15px;
+      cursor:pointer;
+    }
+  </style>
+</head>
+<body>
+
+<header></header>
+
+<div class="container">
+
+  <!-- TOP INFO -->
+  <div class="top-card">
+    <div class="brand">
+      <img src="logo.png" alt="Logo">
+      <div>
+        <h1>SuruhBeli</h1>
+        <div class="wilayah">Layanan Khusus 1 Kecamatan • COD</div>
+      </div>
+    </div>
+    <div class="welcome" id="welcomeText">
+      Memuat data pengguna...
+    </div>
+  </div>
+
+  <!-- BANNER -->
+  <div class="banner">
+    <h2>Suruh Apa Saja</h2>
+    <p>
+      Bisa suruh beli makanan, belanjaan, atau antar barang ringan.
+      Bayar di tempat (COD), cepat dan khusus wilayah lokal.
+    </p>
+  </div>
+
+  <!-- LAYANAN -->
+  <div class="section-title">Pilih Layanan</div>
+
+  <div class="grid">
+    <div class="service-card" onclick="goOrder('makanan')">
+      <div class="service-icon">🍜</div>
+      <div class="service-title">Beli Makanan</div>
+      <div class="service-desc">Warung, mie ayam, dll</div>
+    </div>
+
+    <div class="service-card" onclick="goOrder('belanja')">
+      <div class="service-icon">🛒</div>
+      <div class="service-title">Beli Belanjaan</div>
+      <div class="service-desc">Sembako & kebutuhan</div>
+    </div>
+
+    <div class="service-card" onclick="goOrder('antar')">
+      <div class="service-icon">📦</div>
+      <div class="service-title">Antar Barang</div>
+      <div class="service-desc">Barang ringan saja</div>
+    </div>
+
+    <div class="service-card" onclick="goOrder('lainnya')">
+      <div class="service-icon">✨</div>
+      <div class="service-title">Suruh Lainnya</div>
+      <div class="service-desc">Custom permintaan</div>
+    </div>
+  </div>
+
+  <!-- CTA -->
+  <div class="cta">
+    <button class="btn-order" onclick="goOrder('umum')">
+      🟠 Buat Pesanan Sekarang
+    </button>
+  </div>
+
+  <div class="footer">
+    SuruhBeli • Layanan Lokal • COD • Ramah Warga
+  </div>
+
+</div>
+
+<!-- LOCK SCREEN -->
+<div class="auth-lock" id="authLock"></div>
+
+<!-- POPUP LOGIN -->
+<div class="login-popup" id="loginPopup">
+  <div class="popup-title">Masuk Dulu Yuk</div>
+  <div class="popup-desc">
+    Untuk menggunakan layanan SuruhBeli, kamu harus masuk atau daftar terlebih dahulu.
+  </div>
+  <button class="btn-login" onclick="window.location.href='register.html'">
+    Masuk / Daftar Sekarang
+  </button>
+</div>
+
+<script>
+  // ===== FIREBASE CONFIG (PAKAI PUNYA KAMU) =====
+  firebase.initializeApp({
+    apiKey: "AIzaSyByQl0BXZoSMzrULUNA6l7UVFQjXmvsdJE",
+    authDomain: "suruhbeli-e8ae8.firebaseapp.com",
+    projectId: "suruhbeli-e8ae8"
+  });
+
+  const auth = firebase.auth();
+  const db = firebase.firestore();
+
+  const loginPopup = document.getElementById("loginPopup");
+  const authLock = document.getElementById("authLock");
+  const welcomeText = document.getElementById("welcomeText");
+
+  let currentUser = null;
+
+  // ===== AUTH CHECK =====
+  auth.onAuthStateChanged(async (user) => {
+    if (!user) {
+      // BELUM LOGIN → LOCK UI
+      authLock.style.display = "block";
+      setTimeout(() => {
+        loginPopup.classList.add("active");
+      }, 300);
+      welcomeText.innerText = "Silakan masuk untuk menggunakan layanan";
+      return;
+    }
+
+    // SUDAH LOGIN
+    currentUser = user;
+    authLock.style.display = "none";
+    loginPopup.classList.remove("active");
+
+    try {
+      // ambil data user dari firestore (jika ada)
+      const doc = await db.collection("users").doc(user.uid).get();
+      if (doc.exists) {
+        const data = doc.data();
+        welcomeText.innerText = `Halo, ${data.nama || user.displayName || "Pengguna"} 👋`;
+      } else {
+        welcomeText.innerText = `Halo, ${user.displayName || "Pengguna"} 👋`;
+      }
+    } catch (e) {
+      welcomeText.innerText = `Halo, ${user.displayName || "Pengguna"} 👋`;
+    }
+  });
+
+  // ===== NAVIGASI ORDER =====
+  function goOrder(jenis){
+    if(!currentUser){
+      loginPopup.classList.add("active");
+      authLock.style.display = "block";
+      return;
+    }
+    // kirim jenis layanan ke order page
+    window.location.href = "order.html?layanan=" + jenis;
+  }
+</script>
+
+</body>
+</html>

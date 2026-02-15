@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Daftar - SuruhBeli</title>
+
+  <!-- Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+
+  <style>
+    *{
+      margin:0;
+      padding:0;
+      box-sizing:border-box;
+      font-family:'Nunito', sans-serif;
+    }
+
+    body{
+      background:#FFF7ED;
+      color:#7C2D12;
+      min-height:100vh;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      padding:20px;
+    }
+
+    .card{
+      width:100%;
+      max-width:420px;
+      background:#ffffff;
+      border-radius:20px;
+      padding:24px 20px;
+      box-shadow:0 10px 30px rgba(0,0,0,0.08);
+    }
+
+    .logo{
+      text-align:center;
+      margin-bottom:18px;
+    }
+
+    .logo img{
+      width:130px;
+    }
+
+    h1{
+      font-size:20px;
+      text-align:center;
+      margin-bottom:6px;
+    }
+
+    .sub{
+      font-size:13px;
+      text-align:center;
+      color:#8a6a58;
+      margin-bottom:22px;
+    }
+
+    .label{
+      font-size:13px;
+      font-weight:600;
+      margin-bottom:6px;
+      display:block;
+    }
+
+    .input{
+      width:100%;
+      padding:14px;
+      border-radius:12px;
+      border:1px solid #FED7AA;
+      outline:none;
+      font-size:15px;
+      margin-bottom:14px;
+    }
+
+    .btn-lokasi{
+      width:100%;
+      padding:14px;
+      border-radius:12px;
+      border:none;
+      background:#FED7AA;
+      color:#7C2D12;
+      font-weight:700;
+      cursor:pointer;
+      margin-bottom:16px;
+    }
+
+     .btn-google{
+      width:100%;
+      padding:14px;
+      border-radius:14px;
+      border:1px solid #E5E7EB;
+      background:#ffffff;
+      color:#111827;
+      font-size:15px;
+      font-weight:600;
+      cursor:pointer;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:10px;
+      box-shadow:0 6px 16px rgba(0,0,0,0.05);
+      transition:0.2s;
+    }
+    
+    .btn-google:active{
+      transform:scale(0.98);
+    }
+
+    .google-logo{
+    width:20px;
+    height:20px;
+    background:white;
+    padding:3px;
+    border-radius:50%;
+  }
+
+    /* POPUP LOADING & SUCCESS */
+    .popup{
+      position:fixed;
+      top:0;
+      left:0;
+      width:100%;
+      height:100%;
+      display:none;
+      align-items:center;
+      justify-content:center;
+      background:rgba(0,0,0,0.25);
+      backdrop-filter: blur(4px);
+      z-index:999;
+    }
+
+    .popup-box{
+      background:rgba(255,255,255,0.9);
+      padding:22px 26px;
+      border-radius:16px;
+      text-align:center;
+      box-shadow:0 10px 30px rgba(0,0,0,0.15);
+      animation:scaleIn 0.25s ease;
+    }
+
+    .loader{
+      width:36px;
+      height:36px;
+      border:4px solid #FED7AA;
+      border-top:4px solid #FB923C;
+      border-radius:50%;
+      animation:spin 1s linear infinite;
+      margin:0 auto 12px;
+    }
+
+    @keyframes spin{
+      0%{transform:rotate(0deg);}
+      100%{transform:rotate(360deg);}
+    }
+
+    @keyframes scaleIn{
+      from{transform:scale(0.9); opacity:0;}
+      to{transform:scale(1); opacity:1;}
+    }
+
+    .popup-text{
+      font-weight:600;
+      color:#7C2D12;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="card">
+    <div class="logo">
+      <img src="logo.png" alt="SuruhBeli">
+    </div>
+
+    <h1>Buat Akun SuruhBeli</h1>
+    <div class="sub">Login cepat & gratis pakai Google</div>
+
+    <label class="label">Nomor HP</label>
+    <input 
+      type="tel" 
+      id="noHP" 
+      class="input" 
+      placeholder="Contoh: 08xxxxxxxxxx"
+    />
+
+    <button class="btn-lokasi" onclick="ambilLokasi()">
+      📍 Ambil Lokasi Otomatis
+    </button>
+
+    <button class="btn-google" onclick="loginGoogle()">
+      <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" 
+           alt="Google" 
+           class="google-logo">
+      Masuk dengan Google
+    </button>
+  </div>
+
+  <!-- POPUP -->
+  <div class="popup" id="popup">
+    <div class="popup-box">
+      <div class="loader" id="loader"></div>
+      <div class="popup-text" id="popupText">
+        Mengambil lokasi...
+      </div>
+    </div>
+  </div>
+
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyByQl0BXZoSMzrULUNA6l7UVFQjXmvsdJE",
+    authDomain: "suruhbeli-e8ae8.firebaseapp.com",
+    projectId: "suruhbeli-e8ae8",
+    storageBucket: "suruhbeli-e8ae8.firebasestorage.app",
+    messagingSenderId: "5783247867",
+    appId: "1:5783247867:web:8f57e09a7dc4565378c95e"
+  };
+
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+  const db = firebase.firestore();
+
+  let latUser = null;
+  let lngUser = null;
+
+  const popup = document.getElementById("popup");
+  const popupText = document.getElementById("popupText");
+  const loader = document.getElementById("loader");
+
+  function showPopup(text, loading = true){
+    popup.style.display = "flex";
+    popupText.innerText = text;
+    loader.style.display = loading ? "block" : "none";
+  }
+
+  function hidePopup(delay = 1200){
+    setTimeout(()=>{
+      popup.style.display = "none";
+    }, delay);
+  }
+
+  // AMBIL LOKASI DENGAN POPUP
+  function ambilLokasi(){
+    if(!navigator.geolocation){
+      showPopup("GPS tidak didukung di perangkat ini", false);
+      hidePopup();
+      return;
+    }
+
+    showPopup("Mengambil lokasi...");
+
+    navigator.geolocation.getCurrentPosition(
+      (pos)=>{
+        latUser = pos.coords.latitude;
+        lngUser = pos.coords.longitude;
+
+        showPopup("Lokasi berhasil diambil ✔", false);
+        hidePopup();
+      },
+      ()=>{
+        showPopup("Gagal mengambil lokasi", false);
+        hidePopup();
+      },
+      { enableHighAccuracy:true }
+    );
+  }
+
+  // LOGIN GOOGLE
+  async function loginGoogle(){
+    const noHP = document.getElementById("noHP").value.trim();
+
+    if(!noHP){
+      showPopup("Isi nomor HP dulu ya", false);
+      hidePopup();
+      return;
+    }
+
+    if(latUser === null || lngUser === null){
+      showPopup("Ambil lokasi dulu ya", false);
+      hidePopup();
+      return;
+    }
+
+    try{
+      showPopup("Masuk dengan Google...");
+
+      const provider = new firebase.auth.GoogleAuthProvider();
+      const result = await auth.signInWithPopup(provider);
+      const user = result.user;
+
+      const userRef = db.collection("users").doc(user.uid);
+      const doc = await userRef.get();
+
+      if(!doc.exists){
+        await userRef.set({
+          uid: user.uid,
+          nama: user.displayName || "",
+          email: user.email,
+          noHP: noHP,
+          lat: latUser,
+          lng: lngUser,
+          role: "user",
+          createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+      }
+
+      popupText.innerText = "Login berhasil ✔";
+      loader.style.display = "none";
+
+      setTimeout(()=>{
+        window.location.href = "index.html";
+      }, 1000);
+
+    }catch(err){
+      console.error(err);
+      showPopup("Login gagal, coba lagi", false);
+      hidePopup();
+    }
+  }
+
+  // AUTO LOGIN
+  auth.onAuthStateChanged(async (user)=>{
+    if(user){
+      const doc = await db.collection("users").doc(user.uid).get();
+      if(doc.exists){
+        window.location.href = "index.html";
+      }
+    }
+  });
+</script>
+
+</body>
+</html>

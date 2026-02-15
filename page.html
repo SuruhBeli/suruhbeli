@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SuruhBeli - Selamat Datang</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Nunito', sans-serif;
+    }
+
+    body {
+      background: #FFF7ED; /* Cream */
+      color: #7C2D12; /* Coklat Soft */
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      height: 24px; /* Kosong untuk gal/fullscreen spacing */
+      width: 100%;
+    }
+
+    .container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px 16px 10px;
+    }
+
+    .logo {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-top: 10px;
+      margin-bottom: 10px;
+    }
+
+    .logo img {
+      width: 140px;
+      height: auto;
+      object-fit: contain;
+    }
+
+    .banner-section {
+      width: 100%;
+      margin-top: 10px;
+    }
+
+    /* SLIDER FIX */
+    .banner-wrapper {
+      display: flex;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      scroll-behavior: smooth;
+      gap: 16px;
+      padding-bottom: 10px;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .banner-wrapper::-webkit-scrollbar {
+      display: none;
+    }
+
+    .banner-card {
+      min-width: 100%;
+      flex: 0 0 100%;
+      scroll-snap-align: center;
+      background: #ffffff;
+      border-radius: 16px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+      overflow: hidden;
+    }
+
+    .banner-card img {
+      width: 100%;
+      aspect-ratio: 16/9;
+      object-fit: cover;
+      display: block;
+    }
+
+    .banner-text {
+      padding: 14px;
+      text-align: left;
+    }
+
+    .banner-text h1 {
+      font-size: 18px;
+      margin-bottom: 6px;
+      color: #7C2D12;
+    }
+
+    .banner-text p {
+      font-size: 14px;
+      color: #6b4a3a;
+      line-height: 1.5;
+    }
+
+    /* DOTS */
+    .dots {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #FED7AA;
+      transition: all 0.3s ease;
+    }
+
+    .dot.active {
+      width: 22px;
+      border-radius: 20px;
+      background: #FB923C; /* Oranye Brand */
+    }
+
+    .button-area {
+      width: 100%;
+      margin-top: 20px;
+    }
+
+    .btn-masuk {
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: 14px;
+      background: #FB923C; /* Oranye */
+      color: white;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 6px 16px rgba(251,146,60,0.4);
+      transition: 0.2s ease;
+    }
+
+    .btn-masuk:active {
+      transform: scale(0.98);
+    }
+
+    footer {
+      text-align: center;
+      font-size: 12px;
+      color: #8a6a58;
+      padding: 10px 6px 60px;
+      line-height: 1.6;
+    }
+
+    footer a {
+      color: #FB923C;
+      text-decoration: none;
+      font-weight: 600;
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- Header Kosong (Full Screen Feel) -->
+  <header></header>
+
+  <div class="container">
+
+    <!-- Logo Tengah -->
+    <div class="logo">
+      <img src="logo.png" alt="Logo SuruhBeli">
+    </div>
+
+    <!-- Banner Horizontal Scroll -->
+    <section class="banner-section">
+      <div class="banner-wrapper" id="slider">
+
+        <!-- Banner 1 -->
+        <div class="banner-card">
+          <img src="banner1.png" alt="Banner 1">
+          <div class="banner-text">
+            <h1>Suruh Beli Apa Saja</h1>
+            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Mudah, cepat, dan praktis untuk kebutuhan harian.</p>
+          </div>
+        </div>
+
+        <!-- Banner 2 -->
+        <div class="banner-card">
+          <img src="banner2.png" alt="Banner 2">
+          <div class="banner-text">
+            <h1>Belanja & Makanan</h1>
+            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Dari makanan sampai belanjaan bisa disuruh.</p>
+          </div>
+        </div>
+
+        <!-- Banner 3 -->
+        <div class="banner-card">
+          <img src="banner3.png" alt="Banner 3">
+          <div class="banner-text">
+            <h1>COD & Khusus Wilayah</h1>
+            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Fokus layanan satu kecamatan, lebih cepat.</p>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Dots Indicator -->
+      <div class="dots">
+        <div class="dot active"></div>
+        <div class="dot"></div>
+        <div class="dot"></div>
+      </div>
+    </section>
+
+    <!-- Tombol Masuk -->
+    <div class="button-area">
+      <button class="btn-masuk" onclick="window.location.href='register.html'">
+        Masuk / Daftar
+      </button>
+    </div>
+
+  </div>
+
+  <!-- Footer Persetujuan -->
+  <footer>
+    Dengan masuk atau mendaftar, kamu menyetujui
+    <a href="ketentuan.html">Ketentuan Layanan</a>
+    dan
+    <a href="kebijakan.html">Kebijakan Privasi</a>
+  </footer>
+
+  <!-- SCRIPT FIX DOTS HIDUP -->
+  <script>
+    const slider = document.getElementById("slider");
+    const dots = document.querySelectorAll(".dot");
+
+    slider.addEventListener("scroll", () => {
+      const slideWidth = slider.clientWidth;
+      const scrollLeft = slider.scrollLeft;
+      const index = Math.round(scrollLeft / slideWidth);
+
+      dots.forEach((dot, i) => {
+        dot.classList.remove("active");
+        if (i === index) {
+          dot.classList.add("active");
+        }
+      });
+    });
+  </script>
+
+</body>
+</html>

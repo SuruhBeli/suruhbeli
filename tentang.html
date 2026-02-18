@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#FB923C">
+  <link rel="icon" href="ikon-512.png">
+<title>Tentang Aplikasi - SuruhBeli</title>
+
+<!-- Font Nunito -->
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+/* ===== PAGE ZOOM OUT ANIMATION (MULUS, TANPA BOUNCE) ===== */
+body{
+  animation: pageZoomOut 0.35s ease forwards;
+  transform-origin: center;
+}
+
+@keyframes pageZoomOut{
+  0%{
+    opacity: 0;
+    transform: scale(1.05); /* mulai sedikit lebih besar */
+  }
+  100%{
+    opacity: 1;
+    transform: scale(1);    /* normal */
+  }
+}
+body{
+  margin:0;
+  font-family:'Nunito',sans-serif;
+  background:#FFF7ED;
+  color:#374151;
+}
+
+/* ===== HEADER ===== */
+.header{
+  padding:28px 20px 20px;
+  background:linear-gradient(180deg,#FED7AA,#FFF7ED);
+}
+
+.app-title{
+  font-size:26px;
+  font-weight:800;
+  color:#7C2D12;
+}
+
+.app-sub{
+  font-size:13px;
+  color:#9CA3AF;
+  margin-top:4px;
+}
+
+/* ===== CARD ===== */
+.container{
+  padding:18px;
+  margin-top:-20px;
+}
+
+.card{
+  background:#FFFFFF;
+  border-radius:20px;
+  padding:20px;
+  box-shadow:0 8px 24px rgba(0,0,0,0.06);
+  margin-bottom:16px;
+}
+
+/* ===== APP INFO ===== */
+.app-logo{
+  width:70px;
+  height:70px;
+  border-radius:18px;
+  object-fit:cover;
+  margin-bottom:12px;
+  box-shadow:0 8px 20px rgba(0,0,0,0.08);
+}
+
+.app-name{
+  font-size:22px;
+  font-weight:800;
+  color:#7C2D12;
+}
+
+.version{
+  font-size:13px;
+  color:#9CA3AF;
+  margin-top:4px;
+}
+
+/* ===== SECTION ===== */
+.section-title{
+  font-size:16px;
+  font-weight:800;
+  color:#7C2D12;
+  margin-bottom:8px;
+}
+
+.section-text{
+  font-size:14px;
+  line-height:1.7;
+  color:#4B5563;
+}
+
+/* ===== INFO LIST ===== */
+.info-item{
+  display:flex;
+  justify-content:space-between;
+  padding:10px 0;
+  border-bottom:1px solid #F3F4F6;
+  font-size:14px;
+}
+
+.info-item:last-child{
+  border-bottom:none;
+}
+
+.label{
+  color:#6B7280;
+}
+
+.value{
+  font-weight:700;
+  color:#111827;
+}
+
+/* ===== FOOTER ===== */
+.footer{
+  text-align:center;
+  font-size:12px;
+  color:#9CA3AF;
+  margin-top:24px;
+  padding-bottom:30px;
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="app-title">Tentang Aplikasi</div>
+  <div class="app-sub">Informasi lengkap aplikasi SuruhBeli</div>
+</div>
+
+<div class="container">
+
+  <!-- CARD APP UTAMA (LOGO DIGANTI) -->
+  <div class="card" style="text-align:center;">
+    <img src="logo.png" alt="Logo SuruhBeli" class="app-logo"
+         onerror="this.src='default.png'">
+    <div class="app-name">SuruhBeli</div>
+    <div class="version">Versi 2.12.1</div>
+  </div>
+
+  <!-- DESKRIPSI APLIKASI (REVISI WILAYAH CILAMAYA) -->
+  <div class="card">
+    <div class="section-title">Deskripsi Aplikasi</div>
+    <div class="section-text">
+      SuruhBeli adalah aplikasi layanan pemesanan yang dirancang untuk membantu
+      pengguna melakukan pemesanan dengan cepat, mudah, dan efisien melalui
+      sistem digital yang terintegrasi dengan database berbasis cloud.
+      <br><br>
+      Aplikasi ini berfokus pada kawasan Kecamatan Cilamaya dan sekitarnya,
+      sebagai bentuk inovasi layanan lokal yang bertujuan mempermudah masyarakat
+      dalam melakukan pemesanan dan pengelolaan layanan secara modern,
+      praktis, dan terstruktur.
+      <br><br>
+      SuruhBeli berkomitmen untuk terus mengembangkan sistem dan secara bertahap
+      menyebarluaskan layanan ke lebih banyak wilayah, dengan tetap menjaga
+      kualitas pelayanan, kecepatan sistem, serta kenyamanan pengguna dalam
+      menggunakan aplikasi setiap harinya.
+    </div>
+  </div>
+
+  <!-- KOMITMEN LAYANAN -->
+  <div class="card">
+    <div class="section-title">Komitmen Layanan</div>
+    <div class="section-text">
+      Kami berkomitmen untuk menghadirkan layanan digital yang terpercaya,
+      mudah digunakan, dan bermanfaat bagi masyarakat, khususnya di wilayah
+      Kecamatan Cilamaya.
+      <br><br>
+      Dengan pengembangan berkelanjutan, SuruhBeli akan terus meningkatkan
+      fitur, keamanan data, stabilitas sistem, serta jangkauan layanan guna
+      mendukung kebutuhan operasional dan aktivitas pengguna secara optimal.
+    </div>
+  </div>
+
+  <!-- FITUR UTAMA -->
+  <div class="card">
+    <div class="section-title">Fitur Utama</div>
+    <div class="section-text">
+      • Pemesanan layanan secara online<br>
+      • Riwayat aktivitas dan pesanan<br>
+      • Manajemen profil pengguna<br>
+      • Sistem konfirmasi dan status pesanan<br>
+      • Integrasi database real-time (Cloud Firestore)
+    </div>
+  </div>
+
+  <!-- INFORMASI APLIKASI -->
+  <div class="card">
+    <div class="section-title">Informasi Aplikasi</div>
+    <div class="info-item">
+      <div class="label">Nama Aplikasi</div>
+      <div class="value">SuruhBeli</div>
+    </div>
+    <div class="info-item">
+      <div class="label">Versi</div>
+      <div class="value">2.12.1</div>
+    </div>
+    <div class="info-item">
+      <div class="label">Wilayah Layanan</div>
+      <div class="value">Kecamatan Cilamaya & Sekitar</div>
+    </div>
+    <div class="info-item">
+      <div class="label">Platform</div>
+      <div class="value">Web App / Android</div>
+    </div>
+    <div class="info-item">
+      <div class="label">Database</div>
+      <div class="value">Cloud Firestore</div>
+    </div>
+  </div>
+
+  <!-- DEVELOPER -->
+  <div class="card">
+    <div class="section-title">Pengembang</div>
+    <div class="section-text">
+      Aplikasi SuruhBeli dikembangkan dan dikelola secara independen
+      untuk mendukung sistem operasional layanan pemesanan, distribusi,
+      dan manajemen pengguna agar lebih terstruktur, modern, dan scalable
+      sesuai kebutuhan operasional lapangan.
+    </div>
+  </div>
+
+  <!-- KEAMANAN -->
+  <div class="card">
+    <div class="section-title">Keamanan & Privasi</div>
+    <div class="section-text">
+      Kami menjaga keamanan data pengguna menggunakan sistem autentikasi
+      dan penyimpanan database yang aman. Data seperti nama, email, dan nomor HP
+      hanya digunakan untuk kebutuhan operasional layanan aplikasi dan tidak
+      disalahgunakan ataupun diperjualbelikan kepada pihak lain.
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="footer">
+    SuruhBeli versi 2.12.1 © 2026
+  </div>
+
+</div>
+
+</body>
+</html>

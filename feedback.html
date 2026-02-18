@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#FB923C">
+  <link rel="icon" href="ikon-512.png">
+<title>SuruhBeli - Feedback</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+
+<style>
+:root{
+  --bg-main:#FFF7ED;
+  --text-main:#7C2D12;
+  --card-bg:#ffffff;
+  --border-soft:#FED7AA;
+  --text-secondary:#374151;
+  --accent:#FB923C;
+  --active-bg:#FFF1E6;
+}
+
+body.dark-mode{
+  --bg-main:#0F172A;
+  --text-main:#F8FAFC;
+  --card-bg:#1E293B;
+  --border-soft:#334155;
+  --text-secondary:#E2E8F0;
+  --active-bg:#1E293B;
+}
+
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+  font-family:'Nunito',sans-serif;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body{
+  background: var(--bg-main);
+  color: var(--text-main);
+  min-height:100vh;
+  padding-bottom:80px;
+}
+
+/* HEADER */
+.header{
+  position:sticky;
+  top:0;
+  background: var(--accent);
+  color:white;
+  padding:18px;
+  text-align:center;
+  font-weight:800;
+  font-size:18px;
+  border-radius:0 0 18px 18px;
+  z-index:1000;
+}
+
+/* CONTAINER */
+.container{
+  padding:16px;
+  display:flex;
+  flex-direction:column;
+  gap:16px;
+}
+
+/* CARD */
+.card{
+  background: var(--card-bg);
+  border-radius:18px;
+  padding:16px;
+  border:1px solid var(--border-soft);
+  box-shadow:0 8px 20px rgba(0,0,0,0.05);
+}
+
+/* TITLE */
+.section-title{
+  font-size:18px;
+  font-weight:800;
+  margin-bottom:12px;
+}
+
+/* CATEGORY BUTTON */
+.category-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+}
+
+.category-btn{
+  padding:14px;
+  border-radius:16px;
+  border:1px solid var(--border-soft);
+  background: var(--card-bg);
+  text-align:center;
+  font-weight:700;
+  cursor:pointer;
+  transition:0.2s;
+}
+
+.category-btn.active{
+  background: var(--active-bg);
+  border:2px solid var(--accent);
+  color: var(--accent);
+  transform:scale(1.03);
+}
+
+/* FORM */
+.form-group{
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+}
+
+label{
+  font-weight:700;
+  font-size:14px;
+}
+
+input, textarea, select{
+  padding:12px;
+  border-radius:12px;
+  border:1px solid var(--border-soft);
+  background: var(--card-bg);
+  color: var(--text-main);
+  font-size:14px;
+}
+
+textarea{
+  min-height:120px;
+  resize:none;
+  line-height:1.5;
+}
+
+/* RATING */
+.rating{
+  display:flex;
+  gap:8px;
+  font-size:26px;
+  cursor:pointer;
+}
+
+.star{
+  opacity:0.3;
+  transition:0.2s;
+}
+
+.star.active{
+  opacity:1;
+  transform:scale(1.1);
+}
+
+/* BUTTON */
+.btn-submit{
+  margin-top:8px;
+  width:100%;
+  padding:16px;
+  border:none;
+  border-radius:16px;
+  background: var(--accent);
+  color:white;
+  font-size:16px;
+  font-weight:800;
+  cursor:pointer;
+  box-shadow:0 10px 25px rgba(251,146,60,0.4);
+  transition:0.2s;
+}
+
+.btn-submit:active{
+  transform:scale(0.97);
+}
+
+
+/* ===== POPUP OVERLAY (SAMA DENGAN PROFIL) ===== */
+.popup-overlay{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,0.45);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  z-index:999;
+  padding:16px;
+}
+
+.popup-overlay.show{
+  display:flex;
+}
+
+.confirm-card{
+  position:relative;
+  background:var(--card-bg);
+  border-radius:20px;
+  padding:28px 22px;
+  min-height:120px;
+
+  /* TAMBAHAN AGAR SINKRON DENGAN CARD LAIN */
+  border:1px solid var(--border-soft);
+  box-shadow:0 10px 30px rgba(0,0,0,0.08);
+
+  display:flex;
+  align-items:flex-start;
+  max-width:360px;
+  width:100%;
+  overflow:visible;
+}
+
+.confirm-text{
+  flex:1;
+  font-weight:700;
+  font-size: 20px;
+  padding-right:80px;
+  color:var(--text-secondary);
+}
+
+.alert-img{
+  position:absolute;
+  right:-20px;
+  top:-10px;
+  bottom:-10px;
+  height:calc(100% + 20px);
+  max-width:140px;
+  object-fit:contain;
+  pointer-events:none;
+}
+
+.confirm-actions{
+  margin-top:12px;
+  display:flex;
+  gap:8px;
+}
+
+.btn-ok{
+  flex:1;
+  padding:10px;
+  border-radius:10px;
+  border:none;
+  background:#FB923C;
+  color:white;
+  font-weight:800;
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  📝 Laporan & Feedback
+</div>
+
+<div class="container">
+
+  <!-- KATEGORI -->
+  <div class="card">
+    <div class="section-title">Pilih Jenis</div>
+    <div class="category-grid">
+      <div class="category-btn active" onclick="setKategori('Feedback')">💬 Feedback</div>
+      <div class="category-btn" onclick="setKategori('Laporan')">🚨 Laporan Masalah</div>
+    </div>
+  </div>
+
+  <!-- FORM -->
+  <div class="card">
+    <div class="section-title">Detail</div>
+
+    <div class="form-group">
+      <label>Judul</label>
+      <input type="text" id="judul" placeholder="Contoh: Aplikasi sangat membantu">
+    </div>
+
+    <div class="form-group">
+      <label>Rating Pengalaman</label>
+      <div class="rating">
+        <span class="star" onclick="setRating(1)">⭐</span>
+        <span class="star" onclick="setRating(2)">⭐</span>
+        <span class="star" onclick="setRating(3)">⭐</span>
+        <span class="star" onclick="setRating(4)">⭐</span>
+        <span class="star" onclick="setRating(5)">⭐</span>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>Pesan / Laporan</label>
+      <textarea id="pesan" placeholder="Tulis pengalaman, saran, atau masalah yang kamu alami..."></textarea>
+    </div>
+
+    <button class="btn-submit" onclick="kirimFeedback()">
+      Kirim Feedback 🚀
+    </button>
+  </div>
+
+</div>
+
+<!-- ===== GLOBAL ALERT POPUP (SAMA SEPERTI PROFIL) ===== -->
+<div class="popup-overlay" id="alertPopup">
+  <div class="confirm-card">
+    
+    <div class="confirm-text" id="alertText">
+      Pesan alert
+    </div>
+    <!-- opsional: pakai ilustrasi alert.png biar sama -->
+    <img src="alert.png" class="alert-img" alt="alert">
+  </div>
+</div>
+<script>
+// FIREBASE CONFIG
+firebase.initializeApp({
+  apiKey: "AIzaSyByQl0BXZoSMzrULUNA6l7UVFQjXmvsdJE",
+  authDomain: "suruhbeli-e8ae8.firebaseapp.com",
+  projectId: "suruhbeli-e8ae8"
+});
+
+const db = firebase.firestore();
+const auth = firebase.auth();
+
+let kategori = "Feedback";
+let rating = 0;
+let currentUser = null;
+let isAuthReady = false;
+
+// Ambil user login (WAJIB untuk rules secure)
+auth.onAuthStateChanged(user=>{
+  currentUser = user;
+  isAuthReady = true;
+});
+
+// SET KATEGORI
+function setKategori(k){
+  kategori = k;
+  document.querySelectorAll('.category-btn').forEach(btn=>{
+    btn.classList.remove('active');
+  });
+  event.target.classList.add('active');
+}
+
+// SET RATING
+function setRating(r){
+  rating = r;
+  document.querySelectorAll('.star').forEach((star,index)=>{
+    star.classList.toggle('active', index < r);
+  });
+}
+
+// ALERT POPUP
+function showAlert(message){
+  const popup = document.getElementById("alertPopup");
+  const text = document.getElementById("alertText");
+
+  text.innerText = message;
+  popup.classList.add("show");
+
+  setTimeout(()=>{
+    popup.classList.remove("show");
+  }, 2200);
+}
+
+// KIRIM FEEDBACK (SUDAH SESUAI FIRESTORE RULES SECURE)
+async function kirimFeedback(){
+
+  // Pastikan auth sudah siap
+  if(!isAuthReady){
+    showAlert("Memuat data akun...");
+    return;
+  }
+
+  // WAJIB login (karena rules pakai request.auth)
+  if(!currentUser){
+    showAlert("Silakan login dulu ya 🔐");
+    return;
+  }
+
+  const judul = document.getElementById('judul').value.trim();
+  const pesan = document.getElementById('pesan').value.trim();
+
+  if(!judul){
+    showAlert("Judul belum diisi ya 😊");
+    return;
+  }
+
+  if(!pesan){
+    showAlert("Pesan masih kosong ✍️");
+    return;
+  }
+
+  try{
+    await db.collection("feedback").add({
+      // 🔥 FIELD WAJIB SESUAI RULES
+      userId: currentUser.uid,
+
+      // DATA TAMBAHAN
+      nama: currentUser.displayName || "User SuruhBeli",
+      email: currentUser.email || null,
+      kategori: kategori,
+      judul: judul,
+      pesan: pesan,
+      rating: rating,
+      role: "user", // opsional (berguna untuk admin panel)
+
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+
+    showAlert("Feedback berhasil dikirim 💛");
+
+    // reset form
+    document.getElementById('judul').value = "";
+    document.getElementById('pesan').value = "";
+    rating = 0;
+    document.querySelectorAll('.star').forEach(s=>s.classList.remove('active'));
+
+  }catch(e){
+    console.error("Error kirim feedback:", e);
+
+    if(e.code === "permission-denied"){
+      showAlert("Akses ditolak (rules secure aktif) 🔒");
+    }else{
+      showAlert("Gagal kirim feedback 😢");
+    }
+  }
+}
+
+// SINKRON TEMA 
+function loadTheme(){
+  const savedTheme = localStorage.getItem("themeMode");
+  if(savedTheme === "dark"){
+    document.body.classList.add("dark-mode");
+  }else{
+    document.body.classList.remove("dark-mode");
+  }
+}
+
+// AUTO LOAD
+document.addEventListener("DOMContentLoaded", loadTheme);
+</script>
+</body>
+</html>

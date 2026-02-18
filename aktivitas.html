@@ -1,0 +1,918 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#FB923C">
+  <link rel="icon" href="ikon-512.png">
+<title>SuruhBeli - Aktivitas</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+
+<style>
+:root {
+  --bg-main: #FFF7ED;
+  --text-main: #7C2D12;
+  --card-bg: #ffffff;
+  --border-soft: #FED7AA;
+  --text-secondary: #374151;
+  --text-muted: #6B7280;
+  --accent: #FB923C;
+  --active-tab: #FEEBC8;
+  --success: #10B981;
+  --error: #EF4444;
+  --badge-proses: #C2410C;
+  --badge-selesai: #065F46;
+  --badge-gagal: #991B1B;
+  --dash: #D1D5DB;
+  --line: #E5E7EB;
+  --receipt-text: #2D2D2D;
+  --navbar-bg: #FFF7ED;
+  --navbar-text: #6B7280;
+  --navbar-active-bg: #FB923C;
+  --navbar-active-text: #FB923C;
+  --navbar-border-radius: 35px;
+  --navbar-shadow: 0 8px 20px rgba(0,0,0,0.15);
+  --navbar-glass-bg: rgba(255,255,255,0.55);
+  --navbar-glass-border: 1px solid rgba(255,255,255,0.35);
+  --navbar-glass-blur: blur(14px);
+  --nav-circle-shadow: none;
+}
+
+body.dark-mode {
+  --bg-main: #0F172A;
+  --text-main: #F8FAFC;
+  --card-bg: #1E293B;
+  --border-soft: #334155;
+  --text-secondary: #E2E8F0;
+  --text-muted: #94A3B8;
+  --accent: #FB923C;
+  --active-tab: #1E293B;
+  --success: #10B981;
+  --error: #EF4444;
+  --badge-proses: #F97316;
+  --badge-selesai: #22C55E;
+  --badge-gagal: #EF4444;
+  --dash: #475569;
+  --line: #334155;
+  --receipt-text: #F8FAFC;
+  --navbar-bg: rgba(30,41,59,0.85);
+  --navbar-text: #94A3B8;
+  --navbar-active-bg: #FB923C;
+  --navbar-active-text: #FB923C;
+  --navbar-shadow: 0 10px 30px rgba(0,0,0,0.45);
+  --navbar-glass-bg: rgba(15,23,42,0.65);
+  --navbar-glass-border: 1px solid rgba(148,163,184,0.15);
+  --navbar-glass-blur: blur(16px);
+  --nav-circle-shadow:
+    0 8px 22px rgba(0,0,0,0.35),
+    inset 0 2px 6px rgba(255,255,255,0.08);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Nunito', sans-serif;
+  -webkit-tap-highlight-color: transparent;
+  user-select:none;
+  -webkit-user-select:none;
+  outline:none;
+}
+
+body {
+  background: var(--bg-main);
+  color: var(--text-main);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  padding-bottom: 90px;
+  transition: background 0.3s, color 0.3s;
+}
+
+.scroll-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 70px;
+  background: var(--accent);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 16px;
+  z-index: 1000;
+  border-radius: 0 0 12px 12px;
+}
+
+.container {
+  padding: 16px;
+  margin-top: 80px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.tab {
+  flex: 1;
+  text-align: center;
+  padding: 12px;
+  border-radius: 12px;
+  cursor: pointer;
+  font-weight: 700;
+  background: var(--active-tab);
+  color: var(--text-main);
+  transition: 0.2s;
+}
+
+.tab.active {
+  background: var(--accent);
+  color: white;
+}
+
+.order-card {
+  background: var(--card-bg);
+  border-radius: 16px;
+  padding: 16px;
+  box-shadow: 0 6px 15px rgba(0,0,0,0.05);
+  border: 1px solid var(--border-soft);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.order-card .status {
+  align-self: flex-start;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 700;
+  color: white;
+}
+
+.status.proses {
+  background: var(--accent);
+}
+
+.status.selesai {
+  background: var(--success);
+}
+
+.status.gagal {
+  background: var(--error);
+}
+
+.order-card .btn-group {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.order-card button {
+  flex: 1;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 12px;
+  background: var(--accent);
+  color: white;
+  font-weight: 700;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.order-card button:disabled {
+  background: var(--card-bg);
+  color: var(--text-muted);
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.order-card button:active {
+  transform: scale(0.96);
+}
+
+/* POPUP OVERLAY */
+.popup-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.35);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: 0.2s;
+  z-index: 9999;
+}
+
+.popup-overlay.show {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+#popupAlert .receipt {
+  animation: popIn 0.25s ease;
+}
+
+@keyframes popIn {
+  from { transform: scale(0.9); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+/* ===== POPUP ALERT FRAME ===== */
+.confirm-card {
+  position: relative;
+  width: 320px;
+  max-width: 90%;
+  background: var(--card-bg);
+  border-radius: 18px;
+  padding: 20px;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+  overflow: visible;
+  animation: popIn 0.25s ease;
+}
+
+.confirm-left {
+  width: 75%;
+  z-index: 2;
+}
+
+.confirm-title {
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--text-main);
+}
+
+.confirm-sub {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin: 6px 0 16px 0;
+}
+
+.confirm-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.btn-primary {
+  flex: 1;
+  padding: 10px;
+  border: none;
+  border-radius: 12px;
+  background: var(--accent);
+  color: white;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.btn-secondary {
+  flex: 1;
+  padding: 10px;
+  border: none;
+  border-radius: 12px;
+  background: var(--card-bg);
+  color: var(--text-main);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.confirm-img {
+  position: absolute;
+  right: -50px;
+  top: -15px;
+  height: 110%;
+  object-fit: contain;
+  pointer-events: none;
+  opacity: 0.95;
+}
+
+/* STRUK */
+.receipt {
+  width: 320px;
+  max-width: 90%;
+  background: var(--card-bg);
+  border-radius: 18px;
+  padding: 16px 14px;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+  font-size: 13px;
+  color: var(--receipt-text);
+}
+
+.receipt-header {
+  text-align: center;
+  border-bottom: 1px dashed var(--line);
+  padding-bottom: 10px;
+  margin-bottom: 10px;
+}
+
+.receipt-logo {
+  width: 42px;
+  height: 42px;
+  object-fit: contain;
+  margin-bottom: 4px;
+}
+
+.receipt-title {
+  font-weight: 800;
+  font-size: 16px;
+  color: var(--text-main);
+}
+
+.receipt-sub {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.dash {
+  border-top: 1px dashed var(--dash);
+  margin: 10px 0;
+}
+
+.row {
+  display: flex;
+  justify-content: space-between;
+  margin: 4px 0;
+  gap: 8px;
+}
+
+.label {
+  color: var(--text-muted);
+}
+
+.value {
+  font-weight: 600;
+  text-align: right;
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.badge-proses {
+  background: var(--bg-main);
+  color: var(--badge-proses);
+}
+
+.badge-selesai {
+  background: var(--success);
+  color: var(--badge-selesai);
+}
+
+.badge-gagal {
+  background: var(--error);
+  color: var(--badge-gagal);
+}
+
+.receipt-footer {
+  text-align: center;
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 8px;
+}
+
+.close-btn {
+  margin-top: 12px;
+  width: 100%;
+  padding: 12px;
+  border: none;
+  border-radius: 12px;
+  background: var(--accent);
+  color: white;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+/* NAVBAR */
+.navbar-bottom {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 90%;
+  max-width: 450px;
+  height: 70px;
+
+  background: var(--navbar-bg);
+  border-radius: var(--navbar-border-radius);
+  box-shadow: var(--navbar-shadow);
+
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  z-index: 100;
+  transition: all 0.35s ease;
+}
+/* ===============================
+   MODE GEMPA / TRUE GLASSMORPHISM
+   =============================== */
+.navbar-bottom.gempa-mode{
+  background: var(--navbar-glass-bg);
+  backdrop-filter: blur(18px) saturate(140%);
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
+  border: var(--navbar-glass-border);
+
+  /* Shadow glass (lebih premium, tidak berat) */
+  box-shadow:
+    0 10px 30px rgba(0,0,0,0.25),
+    inset 0 1px 0 rgba(255,255,255,0.15);
+}
+
+/* Highlight tipis biar efek glass lebih hidup */
+.navbar-bottom.gempa-mode::before{
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 12%;
+  width: 76%;
+  height: 1px;
+  background: linear-gradient(
+    to right,
+    transparent,
+    rgba(255,255,255,0.35),
+    transparent
+  );
+  pointer-events: none;
+}
+
+/* ===============================
+   NAV ITEM
+   =============================== */
+.nav-item {
+  position: relative;
+  flex: 1;
+  text-align: center;
+  cursor: pointer;
+  color: var(--navbar-text);
+  z-index: 2; /* di atas circle */
+  transition: transform 0.2s ease;
+}
+
+/* Tap effect (mobile friendly hover) */
+.nav-item:active{
+  transform: scale(0.95);
+}
+
+/* ===============================
+   ICON SVG
+   =============================== */
+.nav-item svg {
+  width: 28px;
+  height: 28px;
+  fill: none;
+  stroke: var(--navbar-text);
+  stroke-width: 1.3;
+  transition: 
+    transform 0.4s cubic-bezier(.68,-0.55,.27,1.55),
+    stroke 0.3s ease;
+}
+
+.nav-item.active svg {
+  stroke: var(--navbar-active-text);
+  transform: translateY(-15px) scale(1.25);
+}
+
+/* ===============================
+   TEXT LABEL (FIX BUG WARNA)
+   =============================== */
+.nav-item span {
+  display: block;
+  margin-top: 1px;
+  font-size: 15px;
+  font-weight: 700;
+  transition: transform 0.3s ease, color 0.3s ease;
+
+  /* 🔥 FIX: default harus text biasa, bukan aktif */
+  color: var(--navbar-text);
+}
+
+.nav-item.active span {
+  transform: translateY(-5px);
+  color: var(--navbar-active-text);
+}
+
+/* ===============================
+   ACTIVE BACKGROUND CIRCLE (SMOOTH)
+   =============================== */
+.nav-active-circle {
+  position: absolute;
+  top: -22px;
+  width: 62px;
+  height: 62px;
+
+  background: var(--border-soft);
+  border-radius: 50%;
+
+  /* pakai variable biar dinamis */
+  box-shadow: var(--nav-circle-shadow);
+
+  transition:
+    left 0.45s cubic-bezier(.68,-0.55,.27,1.55),
+    transform 0.3s ease;
+
+  z-index: 1;
+  pointer-events: none;
+}
+</style>
+</head>
+<body>
+
+<div class="scroll-header">Aktivitas Pesanan</div>
+
+<div class="container">
+  <div class="tabs">
+    <div class="tab active" data-tab="aktif">Pesanan Aktif</div>
+    <div class="tab" data-tab="riwayat">Riwayat</div>
+  </div>
+
+  <div id="ordersContainer"></div>
+</div>
+
+<!-- POPUP -->
+<div id="popupDetail" class="popup-overlay">
+  <div class="receipt">
+    <div id="popupContent"></div>
+    <button class="close-btn" onclick="closePopup()">Tutup</button>
+  </div>
+</div>
+<!-- POPUP ALERT CUSTOM -->
+<div id="popupAlert" class="popup-overlay">
+  <div class="confirm-card">
+    
+    <div class="confirm-left">
+      <div id="popupAlertMessage" class="confirm-title">
+        Pesan Alert
+      </div>
+    
+      <div id="popupAlertSub" class="confirm-sub">
+        Konfirmasi tindakan
+      </div>
+    
+      <div class="confirm-buttons">
+        <button id="popupCancel" class="btn-secondary">
+          Batal
+        </button>
+        <button id="popupOk" class="btn-primary">
+          OK
+        </button>
+      </div>
+    </div>
+    
+    <!-- GAMBAR FRAME KANAN -->
+    <img src="alert.png" class="confirm-img">
+
+  </div>
+</div>
+<!-- NAVBAR FIXED BAWAH -->
+<div class="navbar-bottom">
+  <div class="nav-active-circle" id="navCircle"></div>
+
+  <div class="nav-item" data-index="0" data-href="index.html">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-6">
+      <path d="M11.47 3.841a.75.75 0 0 1 1.06 0l8.69 8.69a.75.75 0 1 0 1.06-1.061l-8.689-8.69a2.25 2.25 0 0 0-3.182 0l-8.69 8.69a.75.75 0 1 0 1.061 1.06l8.69-8.689Z" />
+      <path d="m12 5.432 8.159 8.159c.03.03.06.058.091.086v6.198c0 1.035-.84 1.875-1.875 1.875H15a.75.75 0 0 1-.75-.75v-4.5a.75.75 0 0 0-.75-.75h-3a.75.75 0 0 0-.75.75V21a.75.75 0 0 1-.75.75H5.625a1.875 1.875 0 0 1-1.875-1.875v-6.198a2.29 2.29 0 0 0 .091-.086L12 5.432Z" />
+    </svg>
+
+    <span>Home</span>
+  </div>
+  <div class="nav-item" data-index="1" data-href="aktivitas.html">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-6">
+      <path fill-rule="evenodd" d="M7.502 6h7.128A3.375 3.375 0 0 1 18 9.375v9.375a3 3 0 0 0 3-3V6.108c0-1.505-1.125-2.811-2.664-2.94a48.972 48.972 0 0 0-.673-.05A3 3 0 0 0 15 1.5h-1.5a3 3 0 0 0-2.663 1.618c-.225.015-.45.032-.673.05C8.662 3.295 7.554 4.542 7.502 6ZM13.5 3A1.5 1.5 0 0 0 12 4.5h4.5A1.5 1.5 0 0 0 15 3h-1.5Z" clip-rule="evenodd" />
+      <path fill-rule="evenodd" d="M3 9.375C3 8.339 3.84 7.5 4.875 7.5h9.75c1.036 0 1.875.84 1.875 1.875v11.25c0 1.035-.84 1.875-1.875 1.875h-9.75A1.875 1.875 0 0 1 3 20.625V9.375ZM6 12a.75.75 0 0 1 .75-.75h.008a.75.75 0 0 1 .75.75v.008a.75.75 0 0 1-.75.75H6.75a.75.75 0 0 1-.75-.75V12Zm2.25 0a.75.75 0 0 1 .75-.75h3.75a.75.75 0 0 1 0 1.5H9a.75.75 0 0 1-.75-.75ZM6 15a.75.75 0 0 1 .75-.75h.008a.75.75 0 0 1 .75.75v.008a.75.75 0 0 1-.75.75H6.75a.75.75 0 0 1-.75-.75V15Zm2.25 0a.75.75 0 0 1 .75-.75h3.75a.75.75 0 0 1 0 1.5H9a.75.75 0 0 1-.75-.75ZM6 18a.75.75 0 0 1 .75-.75h.008a.75.75 0 0 1 .75.75v.008a.75.75 0 0 1-.75.75H6.75a.75.75 0 0 1-.75-.75V18Zm2.25 0a.75.75 0 0 1 .75-.75h3.75a.75.75 0 0 1 0 1.5H9a.75.75 0 0 1-.75-.75Z" clip-rule="evenodd" />
+    </svg>
+
+    <span>Pesanan</span>
+  </div>
+  <div class="nav-item" data-index="2" data-href="profil.html">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-6">
+      <path fill-rule="evenodd" d="M18.685 19.097A9.723 9.723 0 0 0 21.75 12c0-5.385-4.365-9.75-9.75-9.75S2.25 6.615 2.25 12a9.723 9.723 0 0 0 3.065 7.097A9.716 9.716 0 0 0 12 21.75a9.716 9.716 0 0 0 6.685-2.653Zm-12.54-1.285A7.486 7.486 0 0 1 12 15a7.486 7.486 0 0 1 5.855 2.812A8.224 8.224 0 0 1 12 20.25a8.224 8.224 0 0 1-5.855-2.438ZM15.75 9a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0Z" clip-rule="evenodd" />
+    </svg>
+
+    <span>Profil</span>
+  </div>
+</div>
+<script>
+firebase.initializeApp({
+  apiKey: "AIzaSyByQl0BXZoSMzrULUNA6l7UVFQjXmvsdJE",
+  authDomain: "suruhbeli-e8ae8.firebaseapp.com",
+  projectId: "suruhbeli-e8ae8"
+});
+
+const auth = firebase.auth();
+const db = firebase.firestore();
+let currentUser = null;
+let activeTab = 'aktif';
+
+auth.onAuthStateChanged(async (user)=>{
+  if(user){
+    currentUser = user;
+    loadOrders();
+  }else{
+    window.location.href = "index.html";
+  }
+});
+
+document.querySelectorAll('.tab').forEach(tab=>{
+  tab.addEventListener('click', ()=>{
+    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+    tab.classList.add('active');
+    activeTab = tab.dataset.tab;
+    loadOrders();
+  });
+});
+
+async function loadOrders(){
+  if(!currentUser) return;
+  const container = document.getElementById('ordersContainer');
+  container.innerHTML = 'Memuat pesanan...';
+
+  try{
+    const snapshot = await db.collection("orders")
+      .where("userId","==",currentUser.uid)
+      .get();
+
+    const orders = snapshot.docs.map(doc=>{
+      const data = doc.data();
+      return {
+        id: doc.id,
+        ...data,
+        createdAt: data.createdAt?.toDate ? data.createdAt.toDate() : new Date(0)
+      };
+    });
+
+    orders.sort((a,b)=>b.createdAt - a.createdAt);
+
+    const filtered = orders.filter(o=>{
+      if(activeTab==='aktif') return o.status==='Dibuat' || o.status==='Diproses';
+      else return o.status==='Selesai' || o.status==='Dibatalkan';
+    });
+
+    if(filtered.length===0){
+      container.innerHTML = "<p>Tidak ada pesanan.</p>";
+      return;
+    }
+
+    container.innerHTML = '';
+    filtered.forEach(order=>{
+      const statusClass = order.status==='Dibuat'||order.status==='Diproses'?'proses':
+                          order.status==='Selesai'?'selesai':'gagal';
+
+      const card = document.createElement('div');
+      card.className = 'order-card';
+      const createdTime = order.createdAt.getTime();
+      const now = new Date().getTime();
+      const canCancel = order.status === 'Dibuat' && (now - createdTime < 10 * 60 * 1000);
+      card.innerHTML = `
+        <div><b>${order.layanan || '-'}</b></div>
+        <div>Pesanan: ${order.pesanan || '-'}</div>
+        <div>Ongkir: Rp ${order.ongkir?.toLocaleString('id-ID') || '-'}</div>
+        <div class="status ${statusClass}">${order.status}</div>
+        <div style="font-size:12px;">${order.createdAt.toLocaleString("id-ID")}</div>
+        <button onclick="showDetail('${order.id}')">Detail</button>
+        <button ${canCancel ? '' : 'disabled'} onclick="confirmCancel('${order.id}')">Batalkan</button>
+      `;
+      container.appendChild(card);
+    });
+
+  }catch(e){
+    container.innerHTML = "<p>Gagal memuat pesanan.</p>";
+    console.log(e);
+  }
+}
+
+function getStatusBadge(status){
+  if(status==='Selesai') return `<span class="status-badge badge-selesai">SELESAI</span>`;
+  if(status==='Dibatalkan') return `<span class="status-badge badge-gagal">DIBATALKAN</span>`;
+  return `<span class="status-badge badge-proses">${status || 'PROSES'}</span>`;
+}
+
+function showDetail(orderId){
+  const popup = document.getElementById('popupDetail');
+  const popupContent = document.getElementById('popupContent');
+
+  // Popup langsung muncul (no delay)
+  popupContent.innerHTML = 'Memuat struk...';
+  popup.classList.add('show');
+
+  db.collection("orders").doc(orderId).get()
+    .then(doc=>{
+      if(!doc.exists) return;
+      const data = doc.data();
+      const createdAt = data.createdAt?.toDate ? data.createdAt.toDate() : new Date(0);
+
+      popupContent.innerHTML = `
+        <div class="receipt-header">
+          <img src="logo.png" class="receipt-logo">
+          <div class="receipt-title">SuruhBeli</div>
+          <div class="receipt-sub">Struk Pesanan Digital</div>
+        </div>
+
+        <div class="row">
+          <span class="label">ID Pesanan</span>
+          <span class="value">#${doc.id.slice(0,6)}</span>
+        </div>
+
+        <div class="row">
+          <span class="label">Waktu</span>
+          <span class="value">${createdAt.toLocaleString("id-ID")}</span>
+        </div>
+
+        <div class="dash"></div>
+
+        <div class="row">
+          <span class="label">Layanan</span>
+          <span class="value">${data.layanan || '-'}</span>
+        </div>
+
+        <div class="row">
+          <span class="label">Pesanan</span>
+          <span class="value">${data.pesanan || '-'}</span>
+        </div>
+
+        <div class="row">
+          <span class="label">Beli di</span>
+          <span class="value">${data.beliDi || '-'}</span>
+        </div>
+
+        <div class="row">
+          <span class="label">Catatan</span>
+          <span class="value">${data.catatan || '-'}</span>
+        </div>
+
+        <div class="dash"></div>
+
+        <div class="row">
+          <span class="label">Ongkir</span>
+          <span class="value">Rp ${data.ongkir?.toLocaleString('id-ID') || '0'}</span>
+        </div>
+
+        <div class="row">
+          <span class="label">Status</span>
+          <span class="value">${getStatusBadge(data.status)}</span>
+        </div>
+
+        <div class="dash"></div>
+
+        <div class="receipt-footer">
+          Terima kasih telah menggunakan SuruhBeli
+        </div>
+      `;
+    })
+    .catch(err=>{
+      popupContent.innerHTML = 'Gagal memuat struk.';
+      console.log(err);
+    });
+}
+
+function closePopup(){
+  document.getElementById('popupDetail').classList.remove('show');
+}
+function showCustomPopup(message, isConfirm = false){
+  return new Promise((resolve)=>{
+    const popup = document.getElementById("popupAlert");
+    const msg = document.getElementById("popupAlertMessage");
+    const sub = document.getElementById("popupAlertSub");
+    const btnOk = document.getElementById("popupOk");
+    const btnCancel = document.getElementById("popupCancel");
+
+    msg.textContent = message;
+
+    if(isConfirm){
+      sub.textContent = "Tindakan ini tidak bisa dibatalkan";
+      btnCancel.style.display = "block";
+    }else{
+      sub.textContent = "";
+      btnCancel.style.display = "none";
+    }
+
+    popup.classList.add("show");
+
+    function close(result){
+      popup.classList.remove("show");
+      btnOk.onclick = null;
+      btnCancel.onclick = null;
+      resolve(result);
+    }
+
+    btnOk.onclick = ()=> close(true);
+    btnCancel.onclick = ()=> close(false);
+  });
+}
+// ---------- TAMBAHKAN DI SINI ----------
+async function confirmCancel(orderId) {
+  const yakin = await showCustomPopup(
+    "Yakin ingin membatalkan pesanan?",
+    true // ini mode confirm (ada tombol batal)
+  );
+
+  if (!yakin) return;
+
+  try{
+    await db.collection("orders").doc(orderId).update({
+      status: "Dibatalkan"
+    });
+
+    await showCustomPopup("Pesanan berhasil dibatalkan!");
+    loadOrders();
+
+  }catch(err){
+    console.log(err);
+    await showCustomPopup("Gagal membatalkan pesanan!");
+  }
+}
+
+//SINKRON TEMA 
+function loadTheme(){
+  const savedTheme = localStorage.getItem("themeMode");
+  if(savedTheme === "dark"){
+    document.body.classList.add("dark-mode");
+  }else{
+    document.body.classList.remove("dark-mode");
+  }
+}
+
+// Jalankan saat halaman selesai load
+window.addEventListener("load", loadTheme);
+
+/* === NAVBAR BAWAH === */
+const navItems = document.querySelectorAll('.nav-item');
+const navCircle = document.getElementById('navCircle');
+document.querySelector('.navbar-bottom')
+  .classList.toggle('gempa-mode');
+  
+function updateNavCircle(activeIndex) {
+  const activeItem = navItems[activeIndex];
+  if (!activeItem || !navCircle) return;
+
+  // Hitung posisi center ikon relatif ke navbar
+  const navbarRect = activeItem.parentElement.getBoundingClientRect();
+  const icon = activeItem.querySelector('svg');
+  const iconRect = icon.getBoundingClientRect();
+
+  const centerX = iconRect.left + iconRect.width / 2 - navbarRect.left;
+
+  navCircle.style.left = `${centerX - navCircle.offsetWidth / 2}px`;
+  navCircle.style.transform = 'scale(1.15)';
+
+  setTimeout(() => {
+    navCircle.style.transform = 'scale(1)';
+  }, 200);
+}
+
+// Inisialisasi tab aktif sesuai URL
+let currentPage = window.location.pathname.split("/").pop() || 'index.html';
+navItems.forEach((item, idx) => {
+  if (item.dataset.href === currentPage) {
+    item.classList.add('active');
+    updateNavCircle(idx);
+  }
+
+  // Event klik
+  item.addEventListener('click', (e) => {
+    e.preventDefault();
+    navItems.forEach(i => i.classList.remove('active'));
+    item.classList.add('active');
+    updateNavCircle(idx);
+
+    setTimeout(() => {
+      window.location.href = item.dataset.href;
+    }, 250); // animasi bulatan selesai dulu
+  });
+});
+
+// Update posisi saat resize / load
+function updateActiveCircle() {
+  const active = document.querySelector('.nav-item.active');
+  if (active) {
+    const idx = Array.from(navItems).indexOf(active);
+    updateNavCircle(idx);
+  }
+}
+
+window.addEventListener('resize', updateActiveCircle);
+window.addEventListener('load', updateActiveCircle);
+</script>
+
+</body>
+</html>

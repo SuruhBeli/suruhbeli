@@ -2,7 +2,10 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#FB923C">
+    <link rel="icon" href="ikon-512.png">
   <title>SuruhBeli - Selamat Datang</title>
 
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
@@ -13,6 +16,10 @@
       padding: 0;
       box-sizing: border-box;
       font-family: 'Nunito', sans-serif;
+      -webkit-tap-highlight-color: transparent;
+      user-select:none;
+      -webkit-user-select:none;
+      outline:none;
     }
 
     body {
@@ -39,16 +46,28 @@
 
     .logo {
       display: flex;
+      flex-direction: column; /* Biar teks di bawah logo */
       justify-content: center;
       align-items: center;
       margin-top: 10px;
-      margin-bottom: 10px;
+      margin-bottom: 14px;
+      gap: 6px; /* Jarak logo & teks */
     }
-
+    
     .logo img {
-      width: 140px;
+      width: 100px;
       height: auto;
       object-fit: contain;
+    }
+    
+    /* Nama App di bawah logo */
+    .app-name {
+      font-size: 24px;
+      font-weight: 900;
+      background: linear-gradient(135deg, #FB923C, #F97316);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      letter-spacing: 0.5px;
     }
 
     .banner-section {
@@ -152,7 +171,7 @@
 
     footer {
       text-align: center;
-      font-size: 12px;
+      font-size: 15px;
       color: #8a6a58;
       padding: 10px 6px 60px;
       line-height: 1.6;
@@ -176,6 +195,7 @@
     <!-- Logo Tengah -->
     <div class="logo">
       <img src="logo.png" alt="Logo SuruhBeli">
+      <h1 class="app-name">SuruhBeli</h1>
     </div>
 
     <!-- Banner Horizontal Scroll -->
@@ -187,7 +207,7 @@
           <img src="banner1.png" alt="Banner 1">
           <div class="banner-text">
             <h1>Suruh Beli Apa Saja</h1>
-            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Mudah, cepat, dan praktis untuk kebutuhan harian.</p>
+            <p>Titip beli apa pun jadi lebih mudah. Dari kebutuhan harian sampai barang mendadak, kami yang belikan dan antar ke tempatmu.</p>
           </div>
         </div>
 
@@ -196,7 +216,7 @@
           <img src="banner2.png" alt="Banner 2">
           <div class="banner-text">
             <h1>Belanja & Makanan</h1>
-            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Dari makanan sampai belanjaan bisa disuruh.</p>
+            <p>Belanja kebutuhan rumah atau pesan makanan favorit? Semua bisa kami belikan dan antar langsung ke lokasimu.</p>
           </div>
         </div>
 
@@ -205,7 +225,7 @@
           <img src="banner3.png" alt="Banner 3">
           <div class="banner-text">
             <h1>COD & Khusus Wilayah</h1>
-            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Fokus layanan satu kecamatan, lebih cepat.</p>
+            <p>Nikmati layanan bayar di tempat (COD) dengan jangkauan khusus wilayah terdekat agar pengiriman lebih cepat dan terjamin.</p>
           </div>
         </div>
 

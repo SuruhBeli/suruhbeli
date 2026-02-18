@@ -1,0 +1,1221 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#FB923C">
+  <link rel="icon" href="ikon-512.png">
+<title>SuruhBeli - Order</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+
+<style>
+  :root{
+    --bg-main:#FFF7ED;
+    --text-main:#7C2D12;
+    --card-bg:#ffffff;
+    --border-soft:#FED7AA;
+    --text-secondary:#374151;
+    --text-muted:#6B7280;
+    --accent:#FB923C;
+    --active-bg:#FFF1E6;
+  }
+
+  body.dark-mode{
+    --bg-main:#0F172A;
+    --text-main:#F8FAFC;
+    --card-bg:#1E293B;
+    --border-soft:#334155;
+    --text-secondary:#E2E8F0;
+    --text-muted:#94A3B8;
+    --accent:#FB923C;
+    --active-bg:#1E293B;
+  }
+
+  *{margin:0;padding:0;box-sizing:border-box;font-family:'Nunito',sans-serif;-webkit-tap-highlight-color: transparent;
+  user-select:none;
+  -webkit-user-select:none;
+  outline:none;
+  }
+  body{background: var(--bg-main); color: var(--text-main); min-height:100vh; display:flex; flex-direction:column; padding-bottom:70px; transition: background 0.3s ease, color 0.3s ease;}
+
+  .scroll-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 70px;
+    background: var(--accent);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 16px;
+    z-index: 1000;
+    border-radius: 0 0 12px 12px;
+    opacity: 0;
+    transition: opacity 0.1s ease;
+  }
+
+  /* HERO HEADER */
+  .hero{
+    width:100%;
+    height: 30vh;
+    min-height: 220px;
+    max-height: 340px;
+    position:relative;
+    overflow:hidden;
+
+    background-image: url('default.png');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+
+  .hero-overlay{
+    position:absolute;
+    inset:0;
+    background: rgba(0,0,0,0.35);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    color:white;
+    font-size:22px;
+    font-weight:800;
+    text-align:center;
+    padding:0 16px;
+  }
+
+  .back-btn {
+    position: fixed;
+    top: 16px;
+    left: 16px;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--card-bg);
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    z-index: 9999;
+  }
+  .back-btn svg {width: 20px; height:20px; color: var(--accent);}
+  .back-btn:hover {transform: translateY(-3px); box-shadow:0 6px 16px rgba(0,0,0,0.25);}
+
+  /* CONTAINER */
+  .container{padding:16px; display:flex; flex-direction:column; gap:16px;}
+
+  /* GRID LAYANAN */
+  .section-title{
+    font-size:20px;
+    font-weight:800;
+    margin-bottom:8px;
+    color: var(--text-main);
+  }
+  .grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:12px;
+  }
+  .grid.highlight .service-card {
+    background: var(--active-bg);
+    transform: scale(1.02);
+  }
+
+  @keyframes gridFlash {
+    0% { box-shadow: 0 0 0 rgba(251,146,60,0); }
+    50% { box-shadow: 0 0 20px var(--accent); }
+    100% { box-shadow: 0 0 0 rgba(251,146,60,0); }
+  }
+
+  .service-card{
+    background: var(--card-bg);
+    border-radius:18px;
+    padding:16px;
+    text-align:center;
+    box-shadow:0 6px 15px rgba(0,0,0,0.05);
+    border:1px solid var(--border-soft);
+    cursor:pointer;
+    transition:0.2s ease;
+  }
+  .service-card:active{transform:scale(0.97);}
+  .service-card:hover {background-color: var(--active-bg); transform:scale(1.03);}
+  .service-icon{font-size:28px;margin-bottom:6px; color: var(--accent);}
+  .service-title{font-weight:800;font-size:16px; color: var(--text-main);}
+  .service-desc{font-size:16px;color: var(--text-secondary); margin-top:4px;}
+
+  /* FLASH HIGHLIGHT */
+  .flash-highlight {animation: flash 0.4s ease;}
+  @keyframes flash {
+    0%   { background-color: var(--bg-main); color: var(--text-main); }
+    50%  { background-color: var(--border-soft); color: var(--card-bg); }
+    100% { background-color: var(--card-bg); color: var(--text-main); }
+  }
+
+  /* ORDER FORM */
+  .order-form{
+    background: var(--card-bg);
+    padding:16px;
+    border-radius:18px;
+    box-shadow:0 6px 20px rgba(0,0,0,0.05);
+    border:1px solid var(--border-soft);
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+  }
+  .order-form label{
+    font-size:18px;
+    font-weight:600;
+    color: var(--text-main);
+    display:flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .order-form input, .order-form textarea, .order-form select{
+    padding:10px;
+    border-radius:12px;
+    border:1px solid var(--border-soft);
+    font-size:16px;
+    width:100%;
+    resize:none;
+    background: var(--card-bg);
+    color: var(--text-main);
+  }
+  .order-form textarea{font-size:15px; height:100px; min-height:100px; resize:none; overflow:hidden; line-height:1.5;}
+  #mainOrder{min-height:120px;}
+  .order-form button.location-btn{
+    padding:6px 10px;
+    border:none;
+    border-radius:12px;
+    background: var(--accent);
+    color:white;
+    font-size:12px;
+    cursor:pointer;
+    margin-left:8px;
+  }
+
+  /* CARD LOKASI */
+  .lokasi-card{margin-top:16px; font-size:20px;}
+  .lokasi-content{display:flex; justify-content: space-between; align-items:center; gap:12px;}
+  .lokasi-text{
+    font-size:15px;
+    color: var(--text-secondary);
+    background: var(--card-bg);
+    padding:10px 12px;
+    border-radius:10px;
+    flex:1;
+    border:1px solid var(--border-soft);
+  }
+  .lokasi-text.flash-lokasi {animation: flashLokasi 0.6s ease;}
+  @keyframes flashLokasi {0% {background-color: var(--card-bg);} 50% {background-color: var(--border-soft);} 100% {background-color: var(--card-bg);}}
+  .btn-lokasi{background: var(--accent); color:white; border:none; font-size:16px; font-weight:700; padding:12px 16px; border-radius:12px; cursor:pointer; transition:0.2s; white-space:nowrap;}
+  .btn-lokasi:hover{background:#F97316; transform:scale(1.03);}
+  .btn-lokasi:active{transform:scale(0.97);}
+  .btn-lokasi.loading{opacity:0.7; cursor:not-allowed;}
+  .btn-lokasi .spinner{width:14px; height:14px; border:2px solid rgba(255,255,255,0.5); border-top:2px solid white; border-radius:50%; display:inline-block; margin-right:6px; animation:spin 0.8s linear infinite; vertical-align:middle;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+
+  /* SUMMARY */
+  .summary{
+    background: var(--active-bg);
+    padding:16px;
+    border-radius:18px;
+    border:1px solid var(--accent);
+    font-size:15px;
+    line-height:1.5;
+    color: var(--text-main);
+  }
+
+  /* BUTTON CTA */
+  .btn-submit{
+    width:100%;
+    padding:16px;
+    border:none;
+    border-radius:16px;
+    background: var(--accent);
+    color:white;
+    font-size:17px;
+    font-weight:800;
+    cursor:pointer;
+    box-shadow:0 8px 20px rgba(251,146,60,0.45);
+    transition:0.2s ease;
+  }
+  .btn-submit:active{transform:scale(0.98);}
+
+  /* POPUP CUSTOM ALERT */
+  .popup-overlay{
+    position: fixed;
+    top:0; left:0;
+    width:100%; height:100%;
+    background: rgba(0,0,0,0.35);
+    backdrop-filter: blur(4px);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    opacity:0;
+    pointer-events:none;
+    transition:0.25s ease;
+    z-index:99999;
+  }
+  .popup-overlay.show{opacity:1; pointer-events:auto;}
+  .popup-box{
+    position: relative;
+    background: var(--card-bg);
+    border-radius:18px;
+    padding:18px 95px 18px 18px;
+    max-width:320px;
+    width:90%;
+    height:150px;
+    min-height:150px;
+    max-height:150px;
+    display:flex;
+    align-items:center;
+    box-shadow:0 20px 40px rgba(0,0,0,0.15);
+    border:1px solid var(--border-soft);
+    overflow:visible;
+  }
+  .popup-left{display:flex; flex-direction:column; justify-content:center; flex:1; gap:12px;}
+  .popup-overlay.show .popup-box{transform:scale(1);}
+  .popup-text{flex:1; font-size:16px; font-weight:700; color: var(--text-main); line-height:1.4;}
+  .popup-img{position:absolute; right:-50px; top:-15px; width:160px; height:110%; object-fit:contain; pointer-events:none; opacity:0.95;}
+  #popupActions{display:flex; flex-direction:row; gap:8px; margin-top:14px;}
+  #btnOkPopup{flex:1; padding:8px 10px; border-radius:10px; font-weight:600; font-size:16px; cursor:pointer; background: var(--accent); color:white; border:none;}
+  #btnBatalPopup{flex:1; padding:8px 10px; border-radius:10px; font-weight:600; font-size:16px; cursor:pointer; background: var(--card-bg); color: var(--text-secondary); border:1px solid var(--border-soft);}
+  #popupActions button:hover{transform:translateY(-1px);}
+  #popupActions button:active{transform:scale(0.96);}
+  /* ================= CUSTOM DROPDOWN DESA ================= */
+.custom-select{
+  position: relative;
+  width: 100%;
+}
+
+/* Trigger jadi terasa seperti picker */
+.custom-select-trigger{
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px solid var(--border-soft);
+  background: var(--card-bg);
+  color: var(--text-main);
+  font-size: 16px;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: 0.25s ease;
+}
+
+.custom-select-trigger:active{
+  transform: scale(0.98);
+  box-shadow: 0 6px 18px rgba(251,146,60,0.25);
+}
+
+.custom-select.open .custom-select-trigger{
+  border-color: var(--accent);
+  box-shadow: 0 6px 18px rgba(251,146,60,0.25);
+}
+
+.arrow{
+  font-size: 18px;
+  transition: transform 0.3s ease;
+}
+
+.custom-select.open .arrow{
+  transform: rotate(180deg);
+}
+
+/* OPTIONS DROPDOWN */
+.custom-options{
+  position: absolute;
+  top: 110%;
+  left: 0;
+  width: 100%;
+  max-height: 260px;
+  overflow-y: auto;
+
+  background: var(--card-bg);
+  border: 1px solid var(--border-soft);
+  border-radius: 16px;
+  box-shadow: 0 12px 30px rgba(0,0,0,0.12);
+
+  opacity: 0;
+  transform: translateY(-8px) scale(0.98);
+  pointer-events: none;
+  transition: 0.25s ease;
+  z-index: 999;
+}
+
+.custom-select.open .custom-options{
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  pointer-events: auto;
+}
+
+.custom-option{
+  padding: 12px 14px;
+  font-size: 15px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: 0.2s ease;
+  border-bottom: 1px solid var(--border-soft);
+}
+
+.custom-option:last-child{
+  border-bottom: none;
+}
+
+.custom-option:hover{
+  background: var(--active-bg);
+  color: var(--text-main);
+}
+
+.custom-option.selected{
+  background: var(--accent);
+  color: white;
+  font-weight: 700;
+}
+</style>
+</head>
+<body>
+
+<div class="scroll-header" id="scrollHeader">Membuat pesanan</div>
+
+<!-- HERO HEADER -->
+<div class="hero" id="heroHeader">
+  <div class="hero-overlay">
+    Buat Pesanan Sekarang
+  </div>
+
+  <div class="back-btn" onclick="goBack()" title="Kembali ke Beranda">
+    <svg viewBox="0 0 24 24">
+      <path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </div>
+</div>
+
+<div class="container">
+  <!-- PILIH LAYANAN -->
+  <div class="section-title">Pilih Layanan</div>
+  <div class="grid" id="serviceGrid">
+    <div class="service-card" onclick="selectService('Beli Makanan')">
+      <div class="service-icon">🍜</div>
+      <div class="service-title">Beli Makanan</div>
+      <div class="service-desc">Warung, mie ayam, dll</div>
+    </div>
+    <div class="service-card" onclick="selectService('Beli Belanjaan')">
+      <div class="service-icon">🛒</div>
+      <div class="service-title">Beli Belanjaan</div>
+      <div class="service-desc">Sembako & kebutuhan</div>
+    </div>
+    <div class="service-card" onclick="selectService('Antar Barang')">
+      <div class="service-icon">📦</div>
+      <div class="service-title">Antar Barang</div>
+      <div class="service-desc">Barang ringan saja</div>
+    </div>
+    <div class="service-card" onclick="selectService('Suruh Lainnya')">
+      <div class="service-icon">✨</div>
+      <div class="service-title">Suruh Lainnya</div>
+      <div class="service-desc">Custom permintaan</div>
+    </div>
+  </div>
+<!-- CARD LOKASI PENGANTARAN -->
+<div class="card lokasi-card">
+  <div class="card-header">
+    <span><strong>Antar Kemana</strong></span>
+  </div>
+
+  <div class="lokasi-content">
+    <div class="lokasi-text" id="lokasiText">
+      Mengambil lokasi default...
+    </div>
+
+    <button type="button" class="btn-lokasi" id="btnAmbilLokasi">
+      📍 Pakai lokasi saya saat ini
+    </button>
+  </div>
+</div>
+ <!-- FORM DETAIL ORDER -->
+<div class="section-title">Detail Pesanan</div>
+<div class="order-form" id="orderForm">
+  <!-- Hapus Nama Penerima + Lokasi -->
+
+  <!-- Layanan -->
+  <label for="serviceName">Layanan</label>
+  <input type="text" id="serviceName" placeholder="Pilih layanan di atas" readonly>
+
+    <!-- Pesanan Utama (Diperlebar & bisa alenia) -->
+  <label for="mainOrder">Pesanan</label>
+  <textarea id="mainOrder" placeholder="Pilih layanan dulu ya 😊"></textarea>
+
+  <!-- Beli Dimana -->
+  <label>Beli Dimana?</label>
+  
+  <div class="custom-select" id="customDesa">
+    <div class="custom-select-trigger" id="desaTrigger">
+      Memuat daftar desa...
+      <span class="arrow">⌄</span>
+    </div>
+  
+    <div class="custom-options" id="desaOptions">
+      <!-- Diisi dari Firestore -->
+    </div>
+  </div>
+  
+  <!-- Hidden select (untuk engine kamu tetap jalan) -->
+  <select id="locationSelect" style="display:none;"></select>
+
+  <!-- Catatan Rinci -->
+  <label for="note">Catatan Tambahan (Biar Tidak Salah)</label>
+  <textarea id="note" placeholder="Tulis keterangan lengkap yah"></textarea>
+</div>
+
+  <!-- RINGKASAN ORDER -->
+  <div class="section-title">Ringkasan</div>
+  <div class="summary" id="summaryText">
+    Belum ada order yang dipilih.
+  </div>
+
+  <!-- CTA BUTTON -->
+  <button class="btn-submit" onclick="submitOrder()">Kirim Pesanan</button>
+</div>
+<!-- ===== POPUP CUSTOM ALERT ===== -->
+<div id="customPopup" class="popup-overlay">
+  <div class="popup-box">
+    
+    <!-- KONTEN KIRI (TEKS + TOMBOL) -->
+    <div class="popup-left">
+      <div class="popup-text" id="popupMessage">
+        Pesan muncul di sini
+      </div>
+  
+      <div id="popupActions" class="popup-actions">
+        <button id="btnOkPopup">Kirim</button>
+        <button id="btnBatalPopup">Periksa</button>
+      </div>
+    </div>
+  
+    <!-- GAMBAR FRAME KANAN -->
+    <img src="alert.png" class="popup-img" alt="alert">
+  </div>
+</div>
+<!-- ===== POPUP LIST DESA ===== -->
+<div id="desaPopup" class="popup-overlay">
+  <div class="popup-box" style="padding:16px; height:auto; min-height:200px; max-height:70vh; flex-direction:column; align-items:stretch;">
+    
+    <div style="font-weight:800; font-size:18px; margin-bottom:10px;">
+      Pilih Beli Dimana
+    </div>
+
+    <div id="desaPopupList" style="
+      overflow-y:auto;
+      max-height:45vh;
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+    ">
+      <!-- List desa dari Firestore -->
+    </div>
+
+    <button id="tutupDesaPopup" style="
+      margin-top:12px;
+      padding:12px;
+      border:none;
+      border-radius:12px;
+      font-weight:700;
+      background: var(--card-bg);
+      border:1px solid var(--border-soft);
+      color: var(--text-secondary);
+      cursor:pointer;
+    ">
+      Tutup
+    </button>
+
+  </div>
+</div>
+<script>
+  // Firebase Config (TETAP)
+  firebase.initializeApp({
+    apiKey: "AIzaSyByQl0BXZoSMzrULUNA6l7UVFQjXmvsdJE",
+    authDomain: "suruhbeli-e8ae8.firebaseapp.com",
+    projectId: "suruhbeli-e8ae8"
+  });
+
+  const auth = firebase.auth();
+  const db = firebase.firestore();
+
+  let currentUser = null;
+  let userLat = null;
+  let userLng = null;
+  
+  // 🔥 TAMBAHAN (UNTUK TOGGLE 2 FUNGSI)
+  let defaultLat = null;
+  let defaultLng = null;
+  let pakaiGPS = false; // state: sedang pakai GPS atau rumah
+
+  // ENGINE ONGKIR (RANKING GPS - FIX)
+  let daftarDesa = [];
+  let desaTujuan = null;
+  let ongkir = 0;
+
+  // ================== AUTH ==================
+  auth.onAuthStateChanged(async (user) => {
+    if(user){
+      currentUser = user;
+      try{
+        const doc = await db.collection("users").doc(user.uid).get();
+        if(doc.exists){
+          const data = doc.data();
+
+          // Simpan lokasi rumah (default dari Firestore)
+          defaultLat = data.lat || null;
+          defaultLng = data.lng || null;
+          
+          // Default awal sistem = pakai lokasi rumah
+          userLat = defaultLat;
+          userLng = defaultLng;
+          pakaiGPS = false;
+
+          // Tampilkan ke card lokasi (UX tetap)
+           // Tampilkan ke card lokasi (UX BARU - TANPA LAT LNG)
+          const lokasiText = document.getElementById('lokasiText');
+          if(lokasiText){
+            if(userLat && userLng){
+              // Default dari data registrasi user
+              lokasiText.innerText = "Lokasi ke rumah saya";
+            }else{
+              lokasiText.innerText = "Lokasi belum diatur";
+            }
+          }
+        }
+      }catch(e){ console.log(e); }
+
+      // Load desa
+      loadDesaDropdown();
+      loadSemuaDesa();
+      loadHeroHeader();
+    }
+  });
+// ================== LOAD HERO HEADER DARI FIRESTORE ==================
+async function loadHeroHeader(){
+  const hero = document.getElementById("heroHeader");
+
+  // fallback default (antisipasi awal)
+  const defaultImg = "default.png";
+
+  try{
+    const doc = await db.collection("stockfoto").doc("foto").get();
+
+    if(doc.exists){
+      const data = doc.data();
+      const url = data.headerorder;
+
+      // Jika field ada & tidak kosong
+      if(url && url.trim() !== ""){
+        // Test image dulu (antisipasi link rusak)
+        const imgTest = new Image();
+        imgTest.src = url;
+
+        imgTest.onload = () => {
+          hero.style.backgroundImage = `url('${url}')`;
+        };
+
+        imgTest.onerror = () => {
+          console.log("Link gambar rusak, pakai default");
+          hero.style.backgroundImage = `url('${defaultImg}')`;
+        };
+
+      }else{
+        // field kosong → fallback
+        hero.style.backgroundImage = `url('${defaultImg}')`;
+      }
+
+    }else{
+      // doc tidak ada → fallback
+      hero.style.backgroundImage = `url('${defaultImg}')`;
+    }
+
+  }catch(error){
+    console.log("Gagal load hero header:", error);
+    hero.style.backgroundImage = `url('${defaultImg}')`;
+  }
+}
+  // ================== LOAD DROPDOWN DESA (TETAP UX) ==================
+  async function loadDesaDropdown(){
+    const hiddenSelect = document.getElementById('locationSelect');
+    const trigger = document.getElementById('desaTrigger');
+    const popupList = document.getElementById('desaPopupList');
+  
+    if(!hiddenSelect || !trigger || !popupList) return;
+  
+    try{
+      const snapshot = await db.collection("desa")
+        .orderBy("urutan", "asc")
+        .get();
+  
+      hiddenSelect.innerHTML = `<option value="" disabled selected>Pilih beli dimana</option>`;
+      popupList.innerHTML = "";
+  
+      snapshot.forEach(doc => {
+        const data = doc.data();
+        const nama = data.nama || doc.id;
+  
+        // Hidden select (engine ongkir tetap jalan)
+        const option = document.createElement("option");
+        option.value = nama;
+        option.dataset.lat = data.lat;
+        option.dataset.lng = data.lng;
+        hiddenSelect.appendChild(option);
+  
+        // Item popup list
+        const item = document.createElement("div");
+        item.className = "custom-option";
+        item.textContent = nama;
+        item.dataset.value = nama;
+        item.dataset.lat = data.lat;
+        item.dataset.lng = data.lng;
+  
+        item.style.borderRadius = "12px";
+  
+        item.addEventListener("click", () => {
+          // Update teks trigger
+          trigger.innerHTML = `${nama} <span class="arrow">⌄</span>`;
+  
+          // Set hidden select (logic lama tetap aman)
+          hiddenSelect.value = nama;
+  
+          // Set desa tujuan (ongkir engine)
+          desaTujuan = {
+            nama: nama,
+            lat: parseFloat(item.dataset.lat),
+            lng: parseFloat(item.dataset.lng)
+          };
+  
+          // Hitung ulang ongkir + summary
+          hitungOngkirRanking();
+          updateSummary();
+  
+          // Tutup popup
+          desaPopup.classList.remove("show");
+  
+          // Highlight selected
+          document.querySelectorAll('#desaPopupList .custom-option')
+            .forEach(opt => opt.classList.remove('selected'));
+          item.classList.add('selected');
+        });
+  
+        popupList.appendChild(item);
+      });
+  
+      trigger.innerHTML = `Pilih beli dimana <span class="arrow">⌄</span>`;
+  
+    }catch(err){
+      console.log("Gagal load desa:", err);
+      trigger.innerText = "Gagal memuat desa";
+    }
+  }
+  // ================= CUSTOM DROPDOWN INTERACTION =================
+  const desaPopup = document.getElementById("desaPopup");
+  const desaPopupList = document.getElementById("desaPopupList");
+  const desaTrigger = document.getElementById("desaTrigger");
+  const btnTutupDesa = document.getElementById("tutupDesaPopup");
+  
+  // Buka popup saat trigger diklik
+  desaTrigger.addEventListener("click", () => {
+    desaPopup.classList.add("show");
+  });
+  
+  // Tutup popup
+  btnTutupDesa.addEventListener("click", () => {
+    desaPopup.classList.remove("show");
+  });
+  
+  // Klik luar box = tutup
+  desaPopup.addEventListener("click", (e) => {
+    if(e.target === desaPopup){
+      desaPopup.classList.remove("show");
+    }
+  });
+  
+  // ================== LOAD SEMUA DESA ==================
+  async function loadSemuaDesa(){
+    try{
+      const snapshot = await db.collection("desa").get();
+      daftarDesa = [];
+
+      snapshot.forEach(doc=>{
+        const data = doc.data();
+        if(data.lat && data.lng){
+          daftarDesa.push({
+            nama: data.nama || doc.id,
+            lat: data.lat,
+            lng: data.lng
+          });
+        }
+      });
+
+    }catch(e){
+      console.log("Error load semua desa:", e);
+    }
+  }
+
+  // ================== RUMUS JARAK (HAVERSINE - AKURAT) ==================
+  function hitungJarak(lat1, lng1, lat2, lng2){
+    const R = 6371; // km
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLng = (lng2 - lng1) * Math.PI / 180;
+
+    const a =
+      Math.sin(dLat/2) * Math.sin(dLat/2) +
+      Math.cos(lat1 * Math.PI/180) *
+      Math.cos(lat2 * Math.PI/180) *
+      Math.sin(dLng/2) * Math.sin(dLng/2);
+
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    return R * c;
+  }
+
+  // ================== HITUNG ONGKIR BERDASARKAN RANKING JARAK ==================
+  function hitungOngkirRanking(){
+    if(!userLat || !userLng || !desaTujuan || daftarDesa.length === 0){
+      ongkir = 0;
+      return;
+    }
+
+    // Hitung jarak semua desa dari user
+    const desaDenganJarak = daftarDesa.map(desa => {
+      const jarak = hitungJarak(userLat, userLng, desa.lat, desa.lng);
+      return { ...desa, jarak };
+    });
+
+    // Urutkan dari TERDEKAT
+    desaDenganJarak.sort((a, b) => a.jarak - b.jarak);
+
+    // Cari ranking desa tujuan
+    let ranking = 0;
+    for(let i = 0; i < desaDenganJarak.length; i++){
+      if(desaDenganJarak[i].nama === desaTujuan.nama){
+        ranking = i + 1; // ranking mulai dari 1
+        break;
+      }
+    }
+
+    if(ranking === 0){
+      ongkir = 0;
+      return;
+    }
+
+    // RULE BISNIS KAMU:
+    // Ranking 1 = 3000
+    // Naik ranking +2000
+    ongkir = 3000 + ((ranking - 1) * 3000);
+
+    console.log("Ranking Desa:", ranking);
+    console.log("Ongkir:", ongkir);
+  }
+
+  // ================== SAAT PILIH DESA ==================
+  document.getElementById('locationSelect').addEventListener('change', (e)=>{
+    const selectedOption = e.target.options[e.target.selectedIndex];
+    if(!selectedOption) return;
+
+    desaTujuan = {
+      nama: selectedOption.value,
+      lat: parseFloat(selectedOption.dataset.lat),
+      lng: parseFloat(selectedOption.dataset.lng)
+    };
+
+    hitungOngkirRanking(); // 🔥 pakai ranking GPS
+    updateSummary();
+  });
+
+  // ================== UX LAMA (TIDAK DIUBAH SAMA SEKALI) ==================
+  let selectedService = '';
+  const serviceInput = document.getElementById('serviceName');
+  const summary = document.getElementById('summaryText');
+
+  function selectService(service){
+    selectedService = service;
+    serviceInput.value = service;
+  
+    const mainOrderField = document.getElementById('mainOrder');
+    const noteField = document.getElementById('note');
+  
+    // 🔥 DINAMIS PLACEHOLDER (PESANAN + CATATAN)
+    if(service === 'Beli Makanan'){
+      mainOrderField.placeholder = `Mau beli apa?
+  Contoh:
+  - Nasi goreng 2
+  - Bakso 1
+  - Teh manis`;
+  
+      noteField.placeholder = `Keterangan tambahan (opsional)
+  Contoh:
+  - Pedas sedang
+  - Warung Bu Ijah
+  - Tanpa sambal`;
+    }
+  
+    else if(service === 'Beli Belanjaan'){
+      mainOrderField.placeholder = `Tulis barang yang mau dibeli
+  Contoh:
+  - Beras 5kg
+  - Minyak 1 liter
+  - Indomie 3`;
+  
+      noteField.placeholder = `Keterangan tambahan (opsional)
+  Contoh:
+  - Merk bebas
+  - Kalau kosong ganti yang mirip
+  - Ukuran kecil saja`;
+    }
+  
+    else if(service === 'Antar Barang'){
+      mainOrderField.placeholder = `Barang apa yang mau diantar?
+  Contoh:
+  - Paket kecil
+  - Dokumen
+  - Tas`;
+  
+      noteField.placeholder = `Detail tujuan (biar tidak nyasar)
+  Contoh:
+  - Rumah pagar biru
+  - Sebelah mushola
+  - Untuk Pak Rudi`;
+    }
+  
+    else if(service === 'Suruh Lainnya'){
+      mainOrderField.placeholder = `Tulis permintaan kamu
+  Contoh:
+  - Ambil paket
+  - Bayar listrik
+  - Belikan pulsa`;
+  
+      noteField.placeholder = `Jelaskan lebih detail ya
+  Contoh:
+  - Ambil di warung depan
+  - Tunggu sampai selesai
+  - Jam 7 malam`;
+    }
+  
+    // Animasi highlight tetap
+    serviceInput.classList.remove('flash-highlight');
+    void serviceInput.offsetWidth;
+    serviceInput.classList.add('flash-highlight');
+  
+    updateSummary();
+  }
+
+  // 🔥 HANYA TAMBAH ONGKIR (TAMPILAN TETAP SAMA)
+  function updateSummary(){
+    const mainOrder = document.getElementById('mainOrder').value.replace(/\n/g, '<br>');
+    const location = document.getElementById('locationSelect').value;
+    const note = document.getElementById('note').value;
+
+    summary.innerHTML = `
+      <b>Layanan:</b> ${selectedService || '-'}<br>
+      <b>Pesanan:</b> ${mainOrder || '-'}<br>
+      <b>Beli Dimana:</b> ${location || '-'}<br>
+      <b>Ongkir Otomatis:</b> Rp ${ongkir.toLocaleString('id-ID')}<br>
+      <b>Catatan:</b> ${note || '-'}
+    `;
+  }
+
+  ['mainOrder','locationSelect','note'].forEach(id=>{
+    const el = document.getElementById(id);
+    if(el){
+      el.addEventListener('input', updateSummary);
+      el.addEventListener('change', updateSummary);
+    }
+  });
+// TOMBOL KIRIM
+async function submitOrder(){
+  const mainOrder = document.getElementById('mainOrder').value.trim();
+  const location = document.getElementById('locationSelect').value;
+  const note = document.getElementById('note').value.trim();
+
+  // ===== VALIDASI USER FRIENDLY =====
+  if(!selectedService){
+    showPopup("Pilih layanan dulu ya 😊");
+    return;
+  }
+
+  if(!mainOrder){
+    showPopup("Isi pesanan dulu ya 😊");
+    return;
+  }
+
+  if(!location){
+    showPopup("Pilih beli dimana dulu ya 😊");
+    return;
+  }
+
+  if(!userLat || !userLng){
+    showPopup("Lokasi belum siap, tekan tombol lokasi dulu 📍");
+    return;
+  }
+
+  // ===== STEP 1: POPUP KONFIRMASI (OPSIONAL B) =====
+  showConfirmPopup(
+    "Pastikan pesanan dan lokasi sudah benar ya 😊",
+    async () => {
+      try{
+        // ===== STEP 2: LOADING (POPUP SAMA) =====
+        showPopup("Tunggu sebentar ya...");
+
+        const orderData = {
+          userId: currentUser ? currentUser.uid : null,
+          layanan: selectedService,
+          pesanan: mainOrder,
+          beliDi: location,
+          catatan: note,
+          ongkir: ongkir,
+          lat: userLat,
+          lng: userLng,
+          status: "Dibuat", // 🔥 DEFAULT SESUAI FLOW KURIR
+          createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        };
+
+        // ===== STEP 3: CREATE FIRESTORE =====
+        await db.collection("orders").add(orderData);
+
+        // ===== STEP 4: SUCCESS =====
+        showPopup("Pesanan berhasil dikirim 🤩");
+
+        setTimeout(() => {
+          window.location.href = "aktivitas.html";
+        }, 1200);
+
+      }catch(error){
+        console.error("Error:", error);
+        showPopup("Gagal kirim pesanan, coba lagi ya");
+      }
+    }
+  );
+}
+
+  // ================== AUTO RESIZE (TETAP) ==================
+  function autoResizeTextarea(el) {
+    el.style.height = 'auto';
+    el.style.height = el.scrollHeight + 'px';
+  }
+
+  document.querySelectorAll('textarea').forEach(textarea => {
+    autoResizeTextarea(textarea);
+    textarea.addEventListener('input', function() {
+      autoResizeTextarea(this);
+    });
+  });
+
+  // ================== HIGHLIGHT GRID (TETAP) ==================
+  const serviceGrid = document.getElementById('serviceGrid');
+  const serviceNameField = document.getElementById('serviceName');
+
+  function highlightGridOnce(){
+    serviceGrid.classList.remove('highlight');
+    void serviceGrid.offsetWidth;
+    serviceGrid.classList.add('highlight');
+
+    setTimeout(() => {
+      serviceGrid.classList.remove('highlight');
+    }, 600);
+  }
+
+  serviceNameField.addEventListener('click', highlightGridOnce);
+  serviceNameField.addEventListener('focus', highlightGridOnce);
+
+  // ================== GPS BUTTON (2 FUNGSI: GPS & RUMAH - COPY FINAL USER FRIENDLY) ==================
+  const btnLokasi = document.getElementById('btnAmbilLokasi');
+  
+  if(btnLokasi){
+    // 🔥 COPY FINAL (SESUIA TARGET USER KAMPUNG)
+    const TEXT_DEFAULT = "📍 Pakai Lokasi Saya saat ini";     // default (rumah aktif)
+    const TEXT_LOADING = "Mengambil...";
+    const TEXT_SUCCESS = "Sukses";
+    const TEXT_BACK_HOME = "🏠 Pakai Lokasi Rumah";  // saat GPS aktif
+  
+    btnLokasi.addEventListener('click', () => {
+  
+      // 🔒 Cegah spam klik saat loading (UX lama tetap)
+      if(btnLokasi.classList.contains('loading')) return;
+  
+      const lokasiText = document.getElementById('lokasiText');
+  
+      // ================== MODE 1: SUDAH PAKAI GPS → BALIK KE RUMAH ==================
+      if(pakaiGPS){
+        if(!defaultLat || !defaultLng){
+          showPopup("Lokasi rumah belum diatur di akun");
+          return;
+        }
+  
+        // STATE: LOADING (UX LAMA TETAP)
+        btnLokasi.classList.add('loading');
+        btnLokasi.disabled = true;
+        btnLokasi.innerHTML = `<span class="spinner"></span>${TEXT_LOADING}`;
+  
+        lokasiText.innerText = "Mengembalikan lokasi...";
+  
+        setTimeout(() => {
+          // 🔥 KEMBALI KE LOKASI RUMAH (Firestore default)
+          userLat = defaultLat;
+          userLng = defaultLng;
+          pakaiGPS = false;
+  
+          // 🔥 COPY FORM FINAL (yang kamu tentukan)
+          lokasiText.innerText = "Lokasi ke rumah saya";
+  
+          // Highlight card lokasi (UX kamu tetap)
+          lokasiText.classList.remove('flash-lokasi');
+          void lokasiText.offsetWidth;
+          lokasiText.classList.add('flash-lokasi');
+  
+          // Recalculate ongkir (engine ranking tetap)
+          hitungOngkirRanking();
+          updateSummary();
+  
+          // STATE: SUCCESS (UX lama tetap)
+          btnLokasi.innerHTML = "✅ " + TEXT_SUCCESS;
+  
+          setTimeout(() => {
+            btnLokasi.classList.remove('loading');
+            btnLokasi.disabled = false;
+  
+            // 🔥 BALIK KE MODE DEFAULT (karena sudah pakai rumah)
+            btnLokasi.innerHTML = TEXT_DEFAULT;
+          }, 2000);
+  
+        }, 800); // smooth seperti GPS
+        return;
+      }
+  
+      // ================== MODE 2: AMBIL GPS (FLOW LAMA + TOGGLE TEXT) ==================
+      if(!navigator.geolocation){
+        showPopup("HP kamu tidak mendukung lokasi GPS");
+        return;
+      }
+  
+      // STATE: LOADING (UX LAMA TETAP)
+      btnLokasi.classList.add('loading');
+      btnLokasi.disabled = true;
+      btnLokasi.innerHTML = `<span class="spinner"></span>${TEXT_LOADING}`;
+  
+      lokasiText.innerText = "Mengambil lokasi...";
+  
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          // 🔥 SIMPAN KOORDINAT GPS
+          userLat = pos.coords.latitude;
+          userLng = pos.coords.longitude;
+          pakaiGPS = true; // aktifkan mode GPS
+  
+          // 🔥 COPY FORM FINAL (yang kamu mau)
+          lokasiText.innerText = "Lokasi saya saat ini";
+  
+          // Highlight card lokasi (UX kamu tetap)
+          lokasiText.classList.remove('flash-lokasi');
+          void lokasiText.offsetWidth;
+          lokasiText.classList.add('flash-lokasi');
+  
+          // Hitung ulang ongkir (ranking GPS tetap 100%)
+          hitungOngkirRanking();
+          updateSummary();
+  
+          // STATE: SUCCESS (UX lama tetap)
+          btnLokasi.innerHTML = "✅ " + TEXT_SUCCESS;
+  
+          setTimeout(() => {
+            btnLokasi.classList.remove('loading');
+            btnLokasi.disabled = false;
+  
+            // 🔥 UBAH TEKS JADI MODE BALIK KE RUMAH
+            btnLokasi.innerHTML = TEXT_BACK_HOME;
+          }, 2000);
+        },
+        () => {
+          lokasiText.innerText = "Gagal mengambil lokasi";
+  
+          btnLokasi.classList.remove('loading');
+          btnLokasi.disabled = false;
+          btnLokasi.innerHTML = TEXT_DEFAULT;
+  
+          showPopup("Gagal mengambil lokasi, coba lagi ya");
+        },
+        { enableHighAccuracy: true, timeout: 10000 }
+      );
+    });
+  }
+
+  function goBack(){ window.location.href='index.html'; }
+
+  window.addEventListener("scroll", ()=>{
+    const scrollY = window.scrollY;
+    document.getElementById("scrollHeader").style.opacity = Math.min(scrollY/50,1);
+  });
+  // ===== CUSTOM POPUP ALERT (GANTI SEMUA ALERT) =====
+const popup = document.getElementById("customPopup");
+const popupMessage = document.getElementById("popupMessage");
+const popupActions = document.getElementById("popupActions");
+const btnOkPopup = document.getElementById("btnOkPopup");
+const btnBatalPopup = document.getElementById("btnBatalPopup");
+
+// Popup biasa (tanpa tombol)
+function showPopup(message){
+  popupMessage.innerText = message;
+  popupActions.style.display = "none";
+  popup.classList.add("show");
+}
+
+// Popup konfirmasi (dengan tombol)
+function showConfirmPopup(message, onConfirm){
+  popupMessage.innerText = message;
+  popupActions.style.display = "flex";
+  popup.classList.add("show");
+
+  // Klik Kirim Sekarang
+  btnOkPopup.onclick = () => {
+    popupActions.style.display = "none";
+    onConfirm(); // lanjut kirim order
+  };
+
+  // Klik Periksa Lagi
+  btnBatalPopup.onclick = () => {
+    closePopup();
+  };
+}
+
+function closePopup(){
+  popup.classList.remove("show");
+}
+
+// Klik background = tutup popup
+document.getElementById("customPopup").addEventListener("click", () => {
+  document.getElementById("customPopup").classList.remove("show");
+});
+//SINKRON TEMA 
+function loadTheme(){
+  const savedTheme = localStorage.getItem("themeMode");
+  if(savedTheme === "dark"){
+    document.body.classList.add("dark-mode");
+  }else{
+    document.body.classList.remove("dark-mode");
+  }
+}
+
+// Jalankan saat halaman selesai load
+window.addEventListener("load", loadTheme);
+</script>
+
+</body>
+</html>

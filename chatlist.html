@@ -125,40 +125,43 @@ function saveChat(chat){
 }
 
 // ===== Auth & Realtime =====
-auth.onAuthStateChanged(async user=>{
-  if(!user) return window.location.href="login.html";
-  const kurirDoc = await db.collection("users").doc(user.uid).get();
-  if(!kurirDoc.exists) return window.location.href="login.html";
-  const currentUser = user;
+auth.onAuthStateChanged(async (user) => {
+  // 1. Wajib login Firebase Auth
+  if (!user) {
+    window.location.href = "login.html";
+    return;
+  }
 
-  db.collection("chatRooms").where(`participants.${currentUser.uid}`,"==",true)
-    .onSnapshot(snapshot=>{
-      snapshot.docChanges().forEach(async change=>{
-        const doc = change.doc;
-        const roomId = doc.id;
-        const participants = doc.data().participants||{};
-        const otherUserId = Object.keys(participants).find(uid=>uid!==currentUser.uid);
+  try {
+    // 2. Ambil data dari collection users
+    const userDoc = await db.collection("users").doc(user.uid).get();
 
-        // Nama partner realtime
-        let partnerDoc = await db.collection("users").doc(otherUserId).get();
-        if(!partnerDoc.exists) partnerDoc = await db.collection("kurir").doc(otherUserId).get();
-        const partnerName = partnerDoc.exists?partnerDoc.data().name||partnerDoc.data().nama||"User":"User";
-        const initials = partnerName.split(' ').map(n=>n[0]).join('').slice(0,2).toUpperCase();
+    // 3. Jika tidak terdaftar di collection users
+    if (!userDoc.exists) {
+      console.warn("User tidak terdaftar di collection users");
+      window.location.href = "login.html";
+      return;
+    }
 
-        // Last message
-        const msgSnap = await db.collection("chatRooms").doc(roomId).collection("messages").orderBy("createdAt","desc").limit(1).get();
-        let lastMsg="Gambar / Stiker", ts=Date.now();
-        if(!msgSnap.empty){
-          const msg = msgSnap.docs[0].data();
-          lastMsg = msg.text||"Gambar / Stiker";
-          ts = msg.createdAt?.toDate?msg.createdAt.toDate():new Date(msg.createdAt);
-        }
+    const userData = userDoc.data();
 
-        const chatItem = {id:roomId, partnerName, initials, lastMessage:lastMsg, timestamp:ts};
-        saveChat(chatItem);
-        renderChat(chatItem);
-      });
-    });
+    // 4. Cek role harus "user"
+    if (userData.role !== "user") {
+      console.warn("Role bukan user, akses ditolak");
+      window.location.href = "login.html";
+      return;
+    }
+
+    // 5. Jika lolos semua cek → akses diizinkan
+    console.log("Akses diberikan untuk role user:", userData.name);
+
+    // lanjutkan load chat / halaman
+    loadChatList(); // sesuaikan dengan fungsi kamu
+
+  } catch (error) {
+    console.error("Error saat validasi user:", error);
+    window.location.href = "login.html";
+  }
 });
 
 // ===== Navbar Bottom =====

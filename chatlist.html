@@ -127,7 +127,7 @@ function saveChat(chat){
 // ===== Auth & Realtime =====
 auth.onAuthStateChanged(async user=>{
   if(!user) return window.location.href="login.html";
-  const kurirDoc = await db.collection("kurir").doc(user.uid).get();
+  const kurirDoc = await db.collection("users").doc(user.uid).get();
   if(!kurirDoc.exists) return window.location.href="login.html";
   const currentUser = user;
 

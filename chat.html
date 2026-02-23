@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#FB923C">
+  <link rel="icon" href="ikon-512.png">
+  <link rel="stylesheet" href="chat.css">
+<title>Chat Room</title>
+<!-- Roboto (WhatsApp Style) -->
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+
+<!-- Nunito (Clean Modern) -->
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+
+<!-- Inter (Startup / Premium UI) -->
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+<div class="header">
+  <button id="backBtn" class="back-btn">
+    <!-- SVG panah kiri -->
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M15 19l-7-7 7-7"/>
+    </svg>
+  </button>
+
+  <div class="partner-info">
+    <div class="partner-photo" id="partnerPhoto">U</div>
+    <div class="partner-name" id="headerName">Users</div>
+  </div>
+  <div class="header-status" id="headerStatus"></div>
+</div>
+
+<div class="chat-container" id="chatContainer"></div>
+<div class="input-container">
+  <div class="input-row">
+
+    <div class="input-box">
+
+      <!-- 🔥 REPLY INLINE (PINDAH KE DALAM INPUT BOX) -->
+      <div id="replyPopup" class="reply-inline">
+        
+        <div class="reply-card"> <!-- 🔥 CARD DALAM -->
+      
+          <div class="reply-inline-content">
+            
+            <div class="reply-text" id="replyText"></div>
+            
+            <button id="cancelReplyBtn" class="reply-cancel">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" stroke="#FB923C" stroke-width="2" stroke-linecap="round">
+                <line x1="18" y1="6" x2="6" y2="18"/>
+                <line x1="6" y1="6" x2="18" y2="18"/>
+              </svg>
+            </button>
+      
+          </div>
+      
+        </div>
+        
+      </div>
+
+      <!-- BARIS INPUT -->
+      <div class="input-inner">
+        <button class="emoji-btn" id="emojiBtn" aria-label="Emoji">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="10"></circle>
+            <path d="M8 14s1.5 2 4 2 4-2 4-2"></path>
+            <line x1="9" y1="9" x2="9.01" y2="9"></line>
+            <line x1="15" y1="9" x2="15.01" y2="9"></line>
+          </svg>
+        </button>
+
+        <textarea id="messageInput" placeholder="Tulis pesan..." rows="1"></textarea>
+      </div>
+
+    </div>
+
+     <!-- SEND TETAP DI LUAR -->
+    <button id="sendBtn" class="send-btn" aria-label="Kirim">
+      <svg class="send-icon" viewBox="0 0 24 24">
+        <path d="M3 20L21 12L3 4V9L15 12L3 15V20Z"/>
+      </svg>
+    </button>
+
+  </div>
+</div>
+<!-- EMOJI POPUP -->
+<div id="emojiPopup"></div>
+<!-- FLOATING SCROLL TO BOTTOM -->
+<button id="scrollToBottomBtn" class="scroll-bottom-btn">
+  <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none" viewBox="0 0 24 24">
+    <path d="M12 5v14M12 19l-5-5M12 19l5-5"
+      stroke="#FB923C"
+      stroke-width="2"
+      stroke-linecap="round"
+      stroke-linejoin="round"/>
+  </svg>
+</button>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script src="chat.js"></script>
+</body>
+</html>

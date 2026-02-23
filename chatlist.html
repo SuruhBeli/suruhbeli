@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#FB923C">
+<link rel="icon" href="ikon-512.png">
+<title>Chat List</title>
+<style>
+:root{
+  --navbar-bg:#FFF7ED;
+  --navbar-text:#6B7280;
+  --navbar-active-bg:#FB923C;
+  --navbar-active-text:#FB923C;
+  --navbar-border-radius:35px;
+  --navbar-shadow:0 8px 20px rgba(0,0,0,0.15);
+  --navbar-glass-bg:rgba(255,255,255,0.55);
+  --navbar-glass-border:1px solid rgba(255,255,255,0.35);
+  --nav-circle-shadow:none;
+}
+*{margin:0;padding:0;box-sizing:border-box;user-select:none;-webkit-user-select:none;outline:none;}
+body{font-family:Nunito,sans-serif;background:#f2f2f2;-webkit-tap-highlight-color:transparent;}
+.container{max-width:480px;margin:0 auto;padding:0 12px;}
+.header{position:fixed;top:0;left:0;width:100%;padding:16px 12px;background:#FB923C;color:white;font-weight:bold;text-align:left;font-size:1.3em;z-index:1000;box-shadow:0 2px 4px rgba(0,0,0,0.1);}
+.chat-list{padding:72px 0 12px 0;}
+.chat-item{display:flex;padding:10px;margin-bottom:8px;background:white;border-radius:10px;cursor:pointer;}
+.chat-item:hover{background:#ffe5d6;}
+.chat-photo{width:50px;height:50px;background:#FB923C;border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;font-weight:bold;flex-shrink:0;font-size:1em;}
+.chat-details{flex:1;margin-left:10px;display:flex;flex-direction:column;justify-content:center;}
+.chat-top{display:flex;justify-content:space-between;align-items:center;}
+.chat-name{font-weight:bold;font-size:1em;}
+.chat-time{font-size:0.75em;color:gray;flex-shrink:0;margin-left:10px;}
+.chat-last-message{font-size:0.85em;color:gray;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%;}
+.navbar-bottom{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);width:90%;max-width:450px;height:70px;background:var(--navbar-bg);border-radius:var(--navbar-border-radius);box-shadow:var(--navbar-shadow);display:flex;justify-content:space-around;align-items:center;z-index:100;transition:all 0.35s ease;}
+.navbar-bottom.gempa-mode{background:var(--navbar-glass-bg);backdrop-filter:blur(18px) saturate(140%);-webkit-backdrop-filter:blur(18px) saturate(140%);border:var(--navbar-glass-border);box-shadow:0 10px 30px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.15);}
+.navbar-bottom.gempa-mode::before{content:"";position:absolute;top:0;left:12%;width:76%;height:1px;background:linear-gradient(to right,transparent,rgba(255,255,255,0.35),transparent);pointer-events:none;}
+.nav-item{position:relative;flex:1;text-align:center;cursor:pointer;color:var(--navbar-text);z-index:2;transition:transform 0.2s ease;}
+.nav-item:active{transform:scale(0.95);}
+.nav-item span{display:block;margin-top:1px;font-size:15px;font-weight:700;transition:transform 0.3s ease,color 0.3s ease;color:var(--navbar-text);}
+.nav-item.active span{transform:translateY(-5px);color:var(--navbar-active-text);}
+.nav-active-circle{position:absolute;top:-22px;width:62px;height:62px;background:var(--border-soft);border-radius:50%;box-shadow:var(--nav-circle-shadow);transition:left 0.45s cubic-bezier(.68,-0.55,.27,1.55),transform 0.3s ease;z-index:1;pointer-events:none;}
+</style>
+</head>
+<body>
+<div class="header">Chat</div>
+<div class="container">
+  <div class="chat-list" id="chatListContainer"></div>
+</div>
+<div class="navbar-bottom gempa-mode">
+  <div class="nav-active-circle" id="navCircle"></div>
+  <div class="nav-item" data-index="0" data-href="index.html"><span>Home</span></div>
+  <div class="nav-item" data-index="1" data-href="tugas.html"><span>Tugas</span></div>
+  <div class="nav-item" data-index="2" data-href="chatlist.html"><span>Profil</span></div>
+</div>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+
+<script>
+// ===== Firebase Config =====
+firebase.initializeApp({
+  apiKey: "AIzaSyByQl0BXZoSMzrULUNA6l7UVFQjXmvsdJE",
+  authDomain: "suruhbeli-e8ae8.firebaseapp.com",
+  projectId: "suruhbeli-e8ae8"
+});
+
+const db = firebase.firestore();
+const auth = firebase.auth();
+const chatListContainer = document.getElementById("chatListContainer");
+
+// ===== IndexedDB Setup =====
+let dbIDB;
+const request = indexedDB.open("chatDB",1);
+request.onupgradeneeded = e=>{
+  dbIDB = e.target.result;
+  if(!dbIDB.objectStoreNames.contains("chats")){
+    dbIDB.createObjectStore("chats",{keyPath:"id"});
+  }
+};
+request.onsuccess = e=>{ dbIDB = e.target.result; loadCachedChats(); };
+
+// ===== Render Chat =====
+function renderChat(chat){
+  let el = document.getElementById("chat_"+chat.id);
+  if(!el){
+    el = document.createElement("div");
+    el.classList.add("chat-item");
+    el.id = "chat_"+chat.id;
+    el.innerHTML = `
+      <div class="chat-photo">${chat.initials||"U"}</div>
+      <div class="chat-details">
+        <div class="chat-top">
+          <div class="chat-name">${chat.partnerName||"User"}</div>
+          <div class="chat-time">${chat.timestamp?new Date(chat.timestamp).toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'}):"--:--"}</div>
+        </div>
+        <div class="chat-last-message">${chat.lastMessage||"Memuat pesan..."}</div>
+      </div>
+    `;
+    el.addEventListener("click",()=>window.location.href=`chat.html?roomId=${chat.id}`);
+    chatListContainer.appendChild(el);
+  }else{
+    el.querySelector(".chat-name").innerText = chat.partnerName;
+    el.querySelector(".chat-photo").innerText = chat.initials||"U";
+    el.querySelector(".chat-last-message").innerText = chat.lastMessage;
+    if(chat.timestamp) el.querySelector(".chat-time").innerText = new Date(chat.timestamp).toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
+  }
+}
+
+// ===== Load Cached Chats from IndexedDB =====
+function loadCachedChats(){
+  const tx = dbIDB.transaction("chats","readonly");
+  const store = tx.objectStore("chats");
+  const req = store.getAll();
+  req.onsuccess = ()=> req.result.forEach(renderChat);
+}
+
+// ===== Save Chat to IndexedDB =====
+function saveChat(chat){
+  const tx = dbIDB.transaction("chats","readwrite");
+  const store = tx.objectStore("chats");
+  store.put(chat);
+}
+
+// ===== Auth & Realtime =====
+auth.onAuthStateChanged(async user=>{
+  if(!user) return window.location.href="login.html";
+  const kurirDoc = await db.collection("kurir").doc(user.uid).get();
+  if(!kurirDoc.exists) return window.location.href="login.html";
+  const currentUser = user;
+
+  db.collection("chatRooms").where(`participants.${currentUser.uid}`,"==",true)
+    .onSnapshot(snapshot=>{
+      snapshot.docChanges().forEach(async change=>{
+        const doc = change.doc;
+        const roomId = doc.id;
+        const participants = doc.data().participants||{};
+        const otherUserId = Object.keys(participants).find(uid=>uid!==currentUser.uid);
+
+        // Nama partner realtime
+        let partnerDoc = await db.collection("users").doc(otherUserId).get();
+        if(!partnerDoc.exists) partnerDoc = await db.collection("kurir").doc(otherUserId).get();
+        const partnerName = partnerDoc.exists?partnerDoc.data().name||partnerDoc.data().nama||"User":"User";
+        const initials = partnerName.split(' ').map(n=>n[0]).join('').slice(0,2).toUpperCase();
+
+        // Last message
+        const msgSnap = await db.collection("chatRooms").doc(roomId).collection("messages").orderBy("createdAt","desc").limit(1).get();
+        let lastMsg="Gambar / Stiker", ts=Date.now();
+        if(!msgSnap.empty){
+          const msg = msgSnap.docs[0].data();
+          lastMsg = msg.text||"Gambar / Stiker";
+          ts = msg.createdAt?.toDate?msg.createdAt.toDate():new Date(msg.createdAt);
+        }
+
+        const chatItem = {id:roomId, partnerName, initials, lastMessage:lastMsg, timestamp:ts};
+        saveChat(chatItem);
+        renderChat(chatItem);
+      });
+    });
+});
+
+// ===== Navbar Bottom =====
+const navItems=document.querySelectorAll(".nav-item");
+const navCircle=document.getElementById("navCircle");
+function updateNavCircle(idx){
+  const active=navItems[idx]; if(!active||!navCircle) return;
+  const rect=active.getBoundingClientRect();
+  const navbarRect=active.parentElement.getBoundingClientRect();
+  const centerX=rect.left+rect.width/2-navbarRect.left;
+  navCircle.style.left=`${centerX-navCircle.offsetWidth/2}px`;
+  navCircle.style.transform='scale(1.15)';
+  setTimeout(()=>navCircle.style.transform='scale(1)',200);
+}
+let currentPage=window.location.pathname.split("/").pop()||"index.html";
+navItems.forEach((item,idx)=>{
+  if(item.dataset.href===currentPage) updateNavCircle(idx);
+  item.addEventListener("click",e=>{
+    e.preventDefault(); navItems.forEach(i=>i.classList.remove("active")); item.classList.add("active");
+    updateNavCircle(idx); setTimeout(()=>window.location.href=item.dataset.href,250);
+  });
+});
+window.addEventListener("resize",()=>{const active=document.querySelector(".nav-item.active"); if(active){const idx=Array.from(navItems).indexOf(active); updateNavCircle(idx);}});
+</script>
+</body>
+</html>

@@ -1,0 +1,706 @@
+:root {
+  --primary-color: #FB923C;
+  --secondary-color: #ffffff;
+  --partner-bg: #E5E7EB;
+  --partner-color: #000;
+  --body-bg: #e5ddd5;
+  --shadow-light: rgba(0, 0, 0, 0.1);
+  --shadow-soft: rgba(0, 0, 0, 0.08);
+  --shadow-medium: rgba(0, 0, 0, 0.15);
+  --overlay-dark: rgba(0, 0, 0, 0.25);
+  --black: #000000;
+  --gray-100: #F3F4F6;
+  --gray-200: #E5E7EB;
+  --gray-500: #6B7280;
+  --gray-600: #555555;
+  --gray-700: #374151;
+  --gray-400: #9CA3AF;
+  --accent-green: #10B981;
+  --user-selected-bg: #C2410C;
+  --highlight-ring: rgba(251, 146, 60, 0.4);
+  --highlight-ring-soft: rgba(251, 146, 60, 0.3);
+  --highlight-overlay: rgba(251, 146, 60, 0.12);
+  --white-soft: rgba(255, 255, 255, 0.85);
+  --white-glass-12: rgba(255, 255, 255, 0.12);
+  --white-glass-20: rgba(255, 255, 255, 0.2);
+  --white-glass-25: rgba(255, 255, 255, 0.25);
+  --reply-partner-bg: rgba(0, 0, 0, 0.05);
+  --reply-user-bg: rgba(255, 255, 255, 0.35);
+}
+:root {
+  --font-1: "Roboto", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-2: "Nunito", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-3: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-main: var(--font-inter);
+}
+:root {
+  --header-height: 64px;
+  --input-height: 90px; /* tinggi aman untuk textarea + reply + button */
+}
+  body {
+    font-family: 'Helvetica', 'Arial', sans-serif; /* default font mirip WhatsApp */
+    margin: 0;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background: var(--body-bg);
+    overflow: hidden;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+  }
+
+  /* HEADER */
+  .header {
+    position: fixed;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    background: var(--primary-color);
+    color: var(--secondary-color);
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 10;
+    box-shadow: 0 2px 4px var(--shadow-light);
+  }
+  .back-btn {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px;
+  }
+  .partner-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+  }
+  .partner-photo {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--gray-200);
+    color: var(--gray-700);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 16px;
+    text-transform: uppercase;
+  }
+  .partner-name {
+    font-weight: 600;
+    font-size: 16px;
+  }
+  .header-status {
+    font-weight: 400;
+    font-size: 12px;
+    margin-top: 4px;
+  }
+
+  /* ===== CHAT CONTAINER ===== */
+  .chat-container {
+    margin-top: 64px;
+    margin-bottom: 0;
+    flex: 1;
+    position: relative;
+    height: calc(100vh - 64px);
+    overflow-y: auto;
+    padding: 12px 10px 140px 10px;
+    display: flex;
+    background-image: url("pattern1.jpg");
+    background-repeat: repeat;
+    background-size: 300px;
+    flex-direction: column;
+    gap: 3px;
+  }
+
+  /* ===== MESSAGE ROW ===== */
+  .message-row {
+    width: 100%;
+    display: flex;
+    position: relative;
+    touch-action: pan-y; /* biar scroll smooth */
+  }
+  .message-row.user {
+    justify-content: flex-end;
+  }
+  .message-row.partner {
+    justify-content: flex-start;
+  }
+
+  /* TEKS MESSAGE */
+  .message {
+    padding: 5px 10px;
+    border-radius: 12px;
+    max-width: 75%;
+    word-wrap: break-word; /* modern */
+    word-wrap: break-word;     /* fallback */
+    word-break: break-word;    /* extra safety */
+    position: relative;
+    font-family: var(--font-2);
+    font-size: 16px;
+    line-height: 1.4;
+  }
+  /* layout message */
+  .message-text {
+    display: inline;
+    line-height: 1;
+  }
+  .message.user {
+    align-self: flex-end;
+    background: var(--primary-color);
+    color: var(--secondary-color)
+    margin-left: auto;
+    margin-right: 5px;
+    border-top-right-radius: 4px;
+  }
+  .message.partner {
+    align-self: flex-start;
+    background: var(--gray-200);
+    color: var(--black);
+    margin-right: auto;
+    margin-left: 5px;
+    border-top-left-radius: 4px;
+  }
+
+  /* ===== STATE SELECT ===== */
+  .message.selected {
+    position: relative;
+    transform: scale(0.98);
+    transition: all 0.15s ease;
+    animation: selectPop 0.15s ease;
+  }
+  @keyframes selectPop {
+    0% { transform: scale(1); }
+    50% { transform: scale(0.96); }
+    100% { transform: scale(0.98); }
+  }
+  .message.user.selected {
+    background: var(--user-selected-bg);
+    box-shadow: 0 0 0 2px var(--highlight-ring);
+  }
+  .message.partner.selected {
+    background: var(--gray-200);
+    box-shadow: 0 0 0 2px var(--highlight-ring-soft);
+  }
+  .message.selected::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: var(--highlight-overlay);
+    border-radius: inherit;
+    pointer-events: none;
+  }
+  .message.selected::before {
+    content: "✓";
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    width: 20px;
+    height: 20px;
+    background: var(--primary-color);
+    color: var(--secondary-color);
+    font-size: 12px;
+    font-weight: bold;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* ===== DELETED MESSAGE WRAPPER ===== */
+  .deleted-msg {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-style: var(--font-1);
+    font-size: 16px;
+    user-select: none;
+    display: inline;
+  }
+  .deleted-icon {
+    width: 16px;
+    height: 16px;
+    stroke: currentColor; /* ikut warna teks */
+    stroke-width: 1.8;
+    flex-shrink: 0;
+    opacity: 0.9;
+  }
+  .message.user.deleted .deleted-msg {
+    color: var(--white-soft);
+  }
+  .message.partner.deleted .deleted-msg {
+    color: var(--gray-500);
+  }
+
+  /* ===== POPUP DELETE ===== */
+  .delete-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: var(--overlay-dark);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    animation: fadeInOverlay 0.18s ease;
+  }
+  .delete-popup {
+    width: 90%;
+    max-width: 340px;
+    background: var(--primary-color);
+    border-radius: 16px;
+    padding: 14px 16px;
+    animation: scaleInPopup 0.18s ease;
+    font-family: var(--font-3);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    backdrop-filter: blur(10px);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .delete-title {
+    font-size: 14px;
+    font-weight: 600;
+    text-align: left;
+    color: var(--secondary-color);
+    line-height: 1.3;
+    flex: 1;
+  }
+  .delete-actions {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 6px;
+  }
+
+  /* ===== DELETE BUTTON ===== */
+  .delete-btn {
+    background: rgba(255, 255, 255, 0.12);
+    /* ganti transparent (untuk transparan */
+    border: none;
+    padding: 8px 12px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    text-align: right;
+    color: var(--secondary-color);
+    border-radius: 10px;
+    backdrop-filter: blur(6px);
+    transition: all 0.18s ease;
+  }
+  .delete-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+  }
+  .delete-btn:active {
+    transform: scale(0.96);
+    background: rgba(255, 255, 255, 0.25);
+  }
+  /* ===== ANIMATIONS ===== */
+  @keyframes fadeInOverlay {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  @keyframes scaleInPopup {
+    from {
+      opacity: 0;
+      transform: scale(0.92) translateY(12px);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1) translateY(0);
+    }
+  }
+  .message.deleting {
+    animation: fadeDelete 0.2s ease forwards;
+  }
+  @keyframes fadeDelete {
+    0% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.4; transform: scale(0.97); }
+    100% { opacity: 0; transform: scale(0.95); }
+  }
+
+  /* ===== WAKTU BUBBLE ===== */
+  .timestamp {
+    font-size: 12px;
+    color: var(--gray-500);
+    opacity: 0.6;
+    margin-top: 4px;
+    text-align: right;
+    margin-left: 26px;
+    display: inline-block;
+    float: right;
+    font-family: var(--font-1);
+  }
+
+   /* ===== INPUT CONTAINER & REPLY TEXT ===== */
+  .input-container {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 8px 10px;
+    background-image: url("pattern1.jpg");
+    background-repeat: repeat;
+    background-size: 300px;
+    z-index: 15;
+  }
+  .input-row {
+    display: flex;
+    align-items: flex-end;
+    gap: 8px;
+  }
+  .input-box {
+    flex: 1;
+    display: flex;
+    flex-direction: column; /* PENTING */
+    gap: 0px;
+    background: var(--secondary-color);
+    border-radius: 30px;
+    padding: 0px;
+    box-shadow: 0 2px 8px var(--shadow-soft);
+    transition: border-radius 0.15s ease, height 0.2s ease;
+    align-items: stretch;
+  }
+  /* BARIS DALAM (EMOJI + TEXTAREA) */
+  .input-inner {
+    display: flex;
+    align-items: flex-end;
+    gap: 6px;
+    padding: 1.8px 10px;
+  }
+  .input-box textarea {
+    flex: 1;
+    border: none;
+    outline: none;
+    background: transparent;
+    font-size: 18px; /* sedikit kecil */
+    font-family: var(--font-2);
+    resize: none;
+    min-height: 28px;   /* 1 baris fix */
+    max-height: 120px;
+    overflow-y: auto;
+    line-height: 15px;  /* harus sinkron JS */
+    padding: 0;
+  }
+  .emoji-btn {
+    width: 38px;
+    height: 38px;
+    border: none;
+    background: transparent;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--primary-color);
+    cursor: pointer;
+    flex-shrink: 0;
+    transform: translateY(-1.8px);
+  }
+  .emoji-btn svg {
+    width: 24px;
+    height: 24px;
+    stroke: var(--primary-color);
+  }
+  .send-btn {
+    width: 46px;
+    height: 46px;
+    border: none;
+    border-radius: 50%;
+    background: var(--secondary-color);
+    color: var(--primary-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: transform 0.12s ease;
+  }
+  .send-icon {
+    width: 20px;
+    height: 20px;
+    fill: currentColor; /* ikut warna tombol */
+    transform: translateX(1px); /* biar optically center */
+  }
+  .send-btn:active {
+    transform: scale(0.9);
+  }
+  #emojiPopup {
+    position: fixed;
+    bottom: 60px;
+    left: 8px;
+    width: 300px;
+    max-height: 200px;
+    overflow-y: auto;
+    background: var(--secondary-color);
+    border: 1px solid var(--gray-100);
+    border-radius: 12px;
+    padding: 8px;
+    box-shadow: 0 4px 12px var(--shadow-soft);
+    z-index: 9999;
+    flex-wrap: wrap;
+    gap: 6px;
+    display: flex;
+    transform: scale(0);
+    opacity: 0;
+    pointer-events: none;
+    transform-origin: bottom left;
+    transition: transform 0.2s ease, opacity 0.2s ease;
+  }
+  #emojiPopup.show {
+    transform: scale(1);
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  /* ===== REPLY INLINE (WA STYLE) ===== */
+  .reply-inline {
+    /* 🔥 JANGAN pakai width 100% mentah */
+    width: calc(100% - 20px); /* 10px kiri + 10px kanan */
+    margin: 4px 10px 0 10px;  /* sejajar dengan padding input-inner */
+  
+    background: var(--secondary-color);
+    border-radius: 10px;
+    padding: 2px; /* kecil saja karena ada card di dalam */
+  
+    display: flex;
+    align-items: center;
+  
+    /* animasi */
+    max-height: 0;
+    opacity: 0;
+    overflow: hidden;
+    transform: translateY(8px);
+    transition: all 0.25s ease;
+  }
+  .reply-inline.show {
+    max-height: 80px;
+    opacity: 1;
+    transform: translateY(0);
+  }
+  .reply-card {
+    width: 100%;
+    border-left: 4px solid var(--primary-color);
+    background: var(--gray-100); /* lebih terang dari parent */
+    border-radius: 10px;
+    padding: 6px 10px;
+    box-shadow: 0 1px 3px var(--shadow-soft);
+  }
+  .reply-inline-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    width: 100%;
+  }
+  .reply-text {
+    font-size: 14px;
+    color: var(--gray-700);
+    font-style: italic;
+    word-break: break-word; /* 🔥 WRAP MULTILINE */
+    white-space: normal;
+    line-height: 1.3;
+    flex: 1;
+  }
+  .reply-cancel {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .reply-cancel svg {
+    stroke: var(--primary-color);
+  }
+  .reply-cancel:active {
+    transform: scale(0.9);
+  }
+  .swipe-reply-icon {
+    position: absolute;
+    left: -36px;
+    top: 50%;
+    transform: translateY(-50%) scale(0.5);
+    opacity: 0;
+    transition: transform 0.15s ease, opacity 0.15s ease;
+    pointer-events: none;
+  }
+  .message.swiping .swipe-reply-icon {
+    opacity: 1;
+    transform: translateY(-50%) scale(1);
+  }
+  .swipe-reply-icon svg {
+    width: 22px;
+    height: 22px;
+    stroke: var(--primary-color);
+    stroke-width: 2;
+  }
+
+  /* ===== REPLY BUBBLE (WA STYLE) ===== */
+  .reply-bubble {
+    position: relative;
+    background: var(--shadow-soft); /* default partner */
+    border-radius: 10px;
+    padding: 6px 8px 6px 10px;
+    margin-bottom: 4px;
+    overflow: hidden;
+    max-width: 100%;
+    word-break: break-word;
+    box-shadow: 0 1px 2px var(--shadow-soft);
+  }
+  .reply-bubble::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 6px;
+    bottom: 6px;
+    width: 3px;
+    border-radius: 3px;
+    background: var(--primary-color); /* warna primary kamu */
+  }
+  .reply-author {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--primary-color);
+    margin-left: 6px;
+    margin-bottom: 2px;
+    line-height: 1.2;
+  }
+  .reply-text-inline {
+    font-size: 13px;
+    color: var(--gray-700);
+    opacity: 0.95;
+    line-height: 1.35;
+    margin-left: 6px;
+    white-space: normal;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 3; /* max 3 baris kayak WA */
+    -webkit-box-orient: vertical;
+  }
+  
+  /* ===== VARIASI PESAN USER (KANAN DAN KIRI) ===== */
+  .message.user .reply-bubble {
+    background: var(--reply-user-bg);
+  }
+  .message.user .reply-bubble::before {
+    background: var(--secondary-color);
+    opacity: 0.9;
+  }
+  .message.user .reply-author {
+    color: var(--secondary-color);
+    opacity: 0.95;
+  }
+  .message.user .reply-text-inline {
+    color: var(--secondary-color);
+    opacity: 0.9;
+  }
+  .message.partner .reply-bubble {
+    background: var(--gray-100); /* abu WA feel */
+  }
+  .message.partner .reply-author {
+    color: var(--primary-color);
+  }
+  .message.partner .reply-text-inline {
+    color: var(--gray-700);
+  }
+  
+  /*===== POPUP ACTION BAR =====*/
+  .selection-popup {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 60px;
+    background: var(--primary-color);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 12px;
+    z-index: 50;
+    gap: 8px;
+    transform: translateY(-100%);
+    transition: transform 0.2s ease;
+  }
+  .selection-popup.show {
+    transform: translateY(0);
+  }
+  .selection-popup button {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: transform 0.1s;
+  }
+  .selection-popup button:hover {
+    transform: scale(1.1);
+  }
+  .selection-popup button svg {
+    width: 25px;
+    height: 25px;
+    stroke: var(--primary-color);
+    stroke-width: 2;
+  }
+
+  /* ===== FLOATING SCROLL TO BOTTOM BUTTON ===== */
+  .scroll-bottom-btn {
+    position: fixed;
+    right: 16px;
+    bottom: 90px; /* tepat di atas tombol kirim */
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: none;
+    background: var(--secondary-color);
+    backdrop-filter: blur(6px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 999;
+    opacity: 0;
+    transform: translateY(20px) scale(0.9);
+    pointer-events: none;
+    transition: all 0.25s ease;
+    box-shadow: 0 8px 20px var(--shadow-soft);
+  }
+  .scroll-bottom-btn.show {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    pointer-events: auto;
+  }
+  .scroll-bottom-btn:active {
+    transform: scale(0.92);
+  }
+
+  /* ===== ONLINE / OFFLINE DOT ===== */
+  .online-dot {
+    width: 8px;
+    height: 8px;
+    background: var(--accent-green);
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 4px;
+  }
+
+  .offline-dot {
+    width: 8px;
+    height: 8px;
+    background: var(--gray-400);
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 4px;
+  }

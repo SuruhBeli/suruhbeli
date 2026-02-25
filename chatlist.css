@@ -1,0 +1,337 @@
+:root {
+  --navbar-bg: #FFF7ED;
+  --navbar-text: #6B7280;
+  --navbar-active-bg: #FB923C;
+  --navbar-active-text: #FB923C;
+  --navbar-border-radius: 35px;
+  --navbar-shadow: 0 8px 20px rgba(0,0,0,0.15);
+  --navbar-glass-bg: rgba(255,255,255,0.55);
+  --navbar-glass-border: 1px solid rgba(255,255,255,0.35);
+  --nav-circle-shadow: none;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  user-select: none;
+  -webkit-user-select: none;
+  outline: none;
+}
+
+body {
+  font-family: Nunito, sans-serif;
+  background: #f2f2f2;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.container {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 0 12px;
+}
+
+.header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  padding: 16px 12px;
+  background: #FB923C;
+  color: white;
+  font-weight: bold;
+  text-align: center;
+  font-size: 1.4em;
+  z-index: 1000;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+  border-bottom-left-radius: 20px;
+  border-bottom-right-radius: 20px;
+}
+
+.chat-list {
+  padding: 88px 0 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.chat-item {
+  display: flex;
+  align-items: center;
+  padding: 12px;
+  background: white;
+  border-radius: 15px;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  word-break: break-word;
+}
+
+.chat-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  background: #ffe5d6;
+}
+
+.chat-photo {
+  width: 52px;
+  height: 52px;
+  background: #FB923C;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: bold;
+  flex-shrink: 0;
+  font-size: 1em;
+  margin-right: 12px;
+}
+
+.chat-details {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 0; /* penting agar teks long message tidak melebar */
+}
+
+.chat-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.chat-name {
+  font-weight: 700;
+  font-size: 1em;
+  color: #333;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 70%;
+}
+
+.chat-time {
+  font-size: 0.75em;
+  color: #9CA3AF;
+  flex-shrink: 0;
+  margin-left: 8px;
+}
+
+.chat-last-message {
+  font-size: 0.85em;
+  color: #6B7280;
+  margin-top: 3px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+}
+
+/* RESPONSIVE */
+@media (max-width: 400px) {
+  .header {
+    font-size: 1.2em;
+    padding: 14px 10px;
+  }
+  .chat-photo {
+    width: 46px;
+    height: 46px;
+  }
+  .chat-name {
+    font-size: 0.95em;
+  }
+  .chat-last-message {
+    font-size: 0.8em;
+  }
+  .navbar-bottom {
+    height: 65px;
+  }
+  .nav-item span {
+    font-size: 13px;
+  }
+  .nav-active-circle {
+    width: 55px;
+    height: 55px;
+  }
+}
+/* ===== PHOTO WRAPPER (WAJIB) ===== */
+.chat-photo-wrapper {
+  position: relative;
+  display: inline-block;
+  margin-right: 12px;
+}
+
+/* Badge Online Hijau */
+.chat-bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.unread-badge {
+  display: none;
+  min-width: 18px;
+  height: 18px;
+  background: #00c853;
+  color: white;
+  font-size: 11px;
+  border-radius: 50px;
+  justify-content: center;
+  align-items: center;
+  padding: 0 5px;
+  font-weight: bold;
+}
+
+.chat-status {
+  font-size: 11px;
+  color: #888;
+  margin-top: 2px;
+}
+
+.online-badge {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 11px;
+  height: 11px;
+  background: #ccc;
+  border-radius: 50%;
+  border: 2px solid white;
+}
+
+.online-badge.active {
+  background: #00c853;
+}
+
+/* NAVBAR */
+.navbar-bottom {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 90%;
+  max-width: 450px;
+  height: 70px;
+
+  background: var(--navbar-bg);
+  border-radius: var(--navbar-border-radius);
+  box-shadow: var(--navbar-shadow);
+
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  z-index: 100;
+  transition: all 0.35s ease;
+}
+/* ===============================
+   MODE GEMPA / TRUE GLASSMORPHISM
+   =============================== */
+.navbar-bottom.gempa-mode{
+  background: var(--navbar-glass-bg);
+  backdrop-filter: blur(18px) saturate(140%);
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
+  border: var(--navbar-glass-border);
+
+  /* Shadow glass (lebih premium, tidak berat) */
+  box-shadow:
+    0 10px 30px rgba(0,0,0,0.25),
+    inset 0 1px 0 rgba(255,255,255,0.15);
+}
+
+/* Highlight tipis biar efek glass lebih hidup */
+.navbar-bottom.gempa-mode::before{
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 12%;
+  width: 76%;
+  height: 1px;
+  background: linear-gradient(
+    to right,
+    transparent,
+    rgba(255,255,255,0.35),
+    transparent
+  );
+  pointer-events: none;
+}
+
+/* ===============================
+   NAV ITEM
+   =============================== */
+.nav-item {
+  position: relative;
+  flex: 1;
+  text-align: center;
+  cursor: pointer;
+  color: var(--navbar-text);
+  z-index: 2; /* di atas circle */
+  transition: transform 0.2s ease;
+}
+
+/* Tap effect (mobile friendly hover) */
+.nav-item:active{
+  transform: scale(0.95);
+}
+
+/* ===============================
+   ICON SVG
+   =============================== */
+.nav-item svg {
+  width: 28px;
+  height: 28px;
+  fill: none;
+  stroke: var(--navbar-text);
+  stroke-width: 1.3;
+  transition: 
+    transform 0.4s cubic-bezier(.68,-0.55,.27,1.55),
+    stroke 0.3s ease;
+}
+
+.nav-item.active svg {
+  stroke: var(--navbar-active-text);
+  transform: translateY(-15px) scale(1.25);
+}
+
+/* ===============================
+   TEXT LABEL (FIX BUG WARNA)
+   =============================== */
+.nav-item span {
+  display: block;
+  margin-top: 1px;
+  font-size: 15px;
+  font-weight: 700;
+  transition: transform 0.3s ease, color 0.3s ease;
+
+  /* 🔥 FIX: default harus text biasa, bukan aktif */
+  color: var(--navbar-text);
+}
+
+.nav-item.active span {
+  transform: translateY(-5px);
+  color: var(--navbar-active-text);
+}
+
+/* ===============================
+   ACTIVE BACKGROUND CIRCLE (SMOOTH)
+   =============================== */
+.nav-active-circle {
+  position: absolute;
+  top: -22px;
+  width: 62px;
+  height: 62px;
+
+  background: var(--border-soft);
+  border-radius: 50%;
+
+  /* pakai variable biar dinamis */
+  box-shadow: var(--nav-circle-shadow);
+
+  transition:
+    left 0.45s cubic-bezier(.68,-0.55,.27,1.55),
+    transform 0.3s ease;
+
+  z-index: 1;
+  pointer-events: none;
+}

@@ -3,7 +3,7 @@
     apiKey: "AIzaSyByQl0BXZoSMzrULUNA6l7UVFQjXmvsdJE",
     authDomain: "suruhbeli-e8ae8.firebaseapp.com",
     projectId: "suruhbeli-e8ae8",
-    databaseURL: "https://suruhbeli-e8ae8-default-rtdb.firebaseio.com"
+    databaseURL: "https://suruhbeli-e8ae8-default-rtdb.asia-southeast1.firebasedatabase.app"
   });
 
   const db = firebase.firestore();
@@ -23,15 +23,19 @@
   const cancelReplyBtn = document.getElementById("cancelReplyBtn");
   const scrollBtn = document.getElementById("scrollToBottomBtn");
   const emojiBtn = document.getElementById("emojiBtn");
-  const emojiPopup = document.getElementById("emojiPopup");  
+  const emojiPopup = document.getElementById("emojiPopup");
+  const header = document.querySelector('.header');
+  const inputBar = document.querySelector('.input-container');
   
-  // === GLOBAL === //
+  // === FLAG GLOBAL === //
+  let preventAutoScroll = false;
   let longPressTimer;
   let selectedMessages = new Set();
   let actionBar = null;
   let currentUser = null;
   let otherUserId = null;
   let unsubscribeMessages = null;
+  let lastMessageDate = null;
   let replyState = {
     active: false,
     messageId: null,
@@ -47,29 +51,76 @@
     window.location.href = "chatlist.html";
   }
 
-  // ===== LOGIN CEK ===== //
-  auth.onAuthStateChanged(user=>{
-    if(user){
-      currentUser = user;
-      loadCachedPartner();
-      loadChatRoomInfo();
-      loadCachedMessages(); // render cache dulu
-      setupRealtimeMessages(); // lalu realtime update
-      updateOnlineStatus(true);
-      window.addEventListener("beforeunload", ()=> updateOnlineStatus(false));
-    } else {
-      window.location.href = "login.html";
-    }
-  });
+// ===== LOGIN CEK ===== //
+auth.onAuthStateChanged(user=>{
+  if(user){
+    currentUser = user;
+    setupTypingIndicator();
+    loadCachedPartner();
+    loadChatRoomInfo();
+    loadCachedMessages(); // render cache dulu
+    setupRealtimeMessages(); // lalu realtime update
+    setupOnlineStatus();
+    markAsDeliveredRealtime();
+    markAsReadRealtime();
+  } else {
+    window.location.href = "register.html";
+  }
+});
 
 // ===== ONLINE STATUS ===== //
-function updateOnlineStatus(isOnline){
+function setupOnlineStatus() {
   if(!currentUser) return;
-  rtdb.ref("status/" + currentUser.uid).set({
-    online: isOnline,
-    lastSeen: firebase.database.ServerValue.TIMESTAMP
-   });
+
+  const userStatusRef = rtdb.ref("status/" + currentUser.uid);
+
+  // Function untuk set online
+  function goOnline() {
+    userStatusRef.set({
+      online: true,
+      lastSeen: firebase.database.ServerValue.TIMESTAMP
+    });
   }
+
+  // Pas user disconnect / tutup tab → otomatis offline
+  userStatusRef.onDisconnect().set({
+    online: false,
+    lastSeen: firebase.database.ServerValue.TIMESTAMP
+  });
+
+  // Set online pertama kali load
+  goOnline();
+
+  // Update online saat tab kembali aktif
+  document.addEventListener("visibilitychange", ()=>{
+    if(document.visibilityState === "visible"){
+      goOnline();
+    }
+  });
+}
+
+// ===== TYPING INDICATOR (REALTIME) ===== //
+function setupTypingIndicator(){
+  if(!currentUser || !roomId || !input) return;
+
+  const typingRef = rtdb.ref(`typing/${roomId}/${currentUser.uid}`);
+
+  input.addEventListener("input", () => {
+    // Set sedang mengetik
+    typingRef.set(true);
+
+    // Reset timer biar realtime & tidak spam
+    clearTimeout(window.typingTimeout);
+    window.typingTimeout = setTimeout(() => {
+      typingRef.set(false);
+    }, 1200); // 1.2 detik = smooth seperti WhatsApp
+  });
+
+  // Jika user keluar halaman → auto stop typing
+  window.addEventListener("beforeunload", () => {
+    typingRef.set(false);
+  });
+}
 
 // ===== CHAT ROOM INFO =====
 function loadChatRoomInfo() {
@@ -111,26 +162,27 @@ function loadChatRoomInfo() {
         })();
 
         // ===== 4. Online status realtime =====
-        const headerStatus = document.getElementById("headerStatus");
-        const statusCacheKey = "status_" + otherUserId;
-
+        const headerStatus = document.getElementById("headerStatus");  
+        const statusCacheKey = "status_" + otherUserId;  
+        
         // Tampilkan cache dulu
-        const cachedStatus = localStorage.getItem(statusCacheKey);
-        if(cachedStatus){
-          const status = JSON.parse(cachedStatus);
-          headerStatus.innerHTML = status.online
-            ? '<span class="online-dot"></span>Online'
-            : `<span class="offline-dot"></span>Offline (Terakhir: ${new Date(status.lastSeen).toLocaleTimeString()})`;
+        const cachedStatus = localStorage.getItem(statusCacheKey);  
+        if(cachedStatus){  
+          const status = JSON.parse(cachedStatus);  
+          headerStatus.innerHTML = status.online  
+            ? '<span class="online-dot"></span>Online'  
+            : `<span class="offline-dot"></span>Offline (Terakhir: ${new Date(status.lastSeen).toLocaleTimeString()})`;  
         }
-
-        rtdb.ref("status/" + otherUserId).on("value", snapshot => {
-          const status = snapshot.val();
-          if(status){
-            headerStatus.innerHTML = status.online
-              ? '<span class="online-dot"></span>Online'
-              : `<span class="offline-dot"></span>Offline (Terakhir: ${new Date(status.lastSeen).toLocaleTimeString()})`;
-            localStorage.setItem(statusCacheKey, JSON.stringify(status));
-          }
+        
+        // Listener realtime partner
+        rtdb.ref("status/" + otherUserId).on("value", snapshot => {  
+          const status = snapshot.val();  
+          if(status){  
+            headerStatus.innerHTML = status.online  
+              ? '<span class="online-dot"></span>Online'  
+              : `<span class="offline-dot"></span>Offline (Terakhir: ${new Date(status.lastSeen).toLocaleTimeString()})`;  
+            localStorage.setItem(statusCacheKey, JSON.stringify(status));  
+          }  
         });
       })
       .catch(err=>console.error("Gagal load chat room info:", err));
@@ -275,6 +327,11 @@ function showSelectionPopup() {
 
   // update jumlah pertama
   updateSelectionCount();
+}
+function updateSelectionCount(){
+  const countEl = document.getElementById("selectionCount");
+  if(!countEl) return; // ⛔ cegah error saat popup belum ada
+  countEl.textContent = selectedMessages.size;
 }
 
 // ===== update clearSelection ===== //
@@ -447,10 +504,13 @@ document.addEventListener('click', e=>{
 
   const clickedMessage = e.target.closest('.message');
   const clickedActionBar = e.target.closest('.selection-popup');
-
+  
+  // jangan cancel kalau sedang long press mode
+  if(e.target.closest('.message-row')) return;
+  
   // Jika klik bubble lain → JANGAN batal (biar bisa multi select)
   if(clickedMessage) return;
-
+  
   // Jika klik action bar → JANGAN batal
   if(clickedActionBar) return;
 
@@ -467,10 +527,9 @@ function enableLongPressSelection() {
     const msgEl = rowEl.querySelector('.message');
     if(!msgEl) return;
 
-    // ===== AMBIL TEXT UNTUK COPY & REPLY =====
+    // Ambil text untuk reply/copy
     const divs = msgEl.querySelectorAll('div');
     let messageText = "";
-
     if(divs.length >= 3){
       messageText = divs[divs.length - 2].innerText;
     } else if(divs.length === 2){
@@ -478,40 +537,24 @@ function enableLongPressSelection() {
     }
     msgEl.dataset.text = messageText;
 
-    let startX = 0;
-    let startY = 0;
-    let currentX = 0;
-    let isSwiping = false;
-    let moved = false;
-    let longPressTriggered = false;
-    let touchStarted = false;
+    let startX = 0, startY = 0, currentX = 0;
+    let isSwiping = false, moved = false, longPressTriggered = false, touchStarted = false;
+    const MAX_SWIPE = 120, REPLY_THRESHOLD = 60, LONG_PRESS_DELAY = 400;
 
-    const MAX_SWIPE = 120;
-    const REPLY_THRESHOLD = 60;
-    const LONG_PRESS_DELAY = 400;
-
-    // ===== TOGGLE SELECT (CORE) =====
+    // Toggle select
     const toggleSelect = () => {
       longPressTriggered = true;
-
       const isSelected = msgEl.classList.toggle('selected');
-      if(isSelected){
-        selectedMessages.add(msgEl);
-      }else{
-        selectedMessages.delete(msgEl);
-      }
+      if(isSelected) selectedMessages.add(msgEl);
+      else selectedMessages.delete(msgEl);
 
-      if(selectedMessages.size > 0){
-        showSelectionPopup();
-        updateSelectionCount();
-      }else{
-        clearSelection();
-      }
+      if(selectedMessages.size > 0) showSelectionPopup();
+      else clearSelection();
 
       if(navigator.vibrate) navigator.vibrate(8);
     };
 
-    // ===== TAP SAAT SUDAH MODE SELECT (INI YANG FIX BUBBLE KEDUA) =====
+    // Tap saat mode select
     msgEl.addEventListener('click', (e) => {
       if(selectedMessages.size > 0 && !isSwiping){
         e.stopPropagation();
@@ -523,7 +566,6 @@ function enableLongPressSelection() {
     rowEl.addEventListener('touchstart', e => {
       touchStarted = true;
       const touch = e.touches[0];
-
       startX = touch.clientX;
       startY = touch.clientY;
       currentX = startX;
@@ -531,19 +573,15 @@ function enableLongPressSelection() {
       isSwiping = false;
       longPressTriggered = false;
 
-      // Long press SELALU aktif (meski sudah select)
       longPressTimer = setTimeout(() => {
-        if(!moved && touchStarted){
-          toggleSelect();
-        }
+        if(!moved && touchStarted) toggleSelect();
       }, LONG_PRESS_DELAY);
 
     }, {passive:true});
 
-    // ===== TOUCH MOVE (SWIPE REPLY TETAP AKTIF WALAU SELECT MODE) =====
+    // ===== TOUCH MOVE =====
     rowEl.addEventListener('touchmove', e => {
       if(!touchStarted) return;
-
       const touch = e.touches[0];
       currentX = touch.clientX;
       const currentY = touch.clientY;
@@ -551,13 +589,13 @@ function enableLongPressSelection() {
       const diffX = currentX - startX;
       const diffY = Math.abs(currentY - startY);
 
-      // Jika scroll vertikal → batal long press
+      // Scroll vertikal → batal long press
       if(diffY > 30){
         clearTimeout(longPressTimer);
         return;
       }
 
-      // Swipe kanan = reply (TIDAK diblok walau ada selection)
+      // Swipe kanan = reply
       if(diffX > 10){
         moved = true;
         isSwiping = true;
@@ -581,16 +619,12 @@ function enableLongPressSelection() {
       msgEl.style.transition = "transform 0.2s ease";
       msgEl.style.transform = "translateX(0)";
       msgEl.classList.remove("swiping");
+      setTimeout(()=>{ msgEl.style.transition = ""; }, 200);
 
-      setTimeout(()=>{
-        msgEl.style.transition = "";
-      },200);
-
-      // ===== TRIGGER REPLY (WALAUPUN SEDANG SELECT MODE) =====
+      // Trigger reply
       if(isSwiping && diffX > REPLY_THRESHOLD && !longPressTriggered){
         const text = msgEl.dataset.text || "";
         const msgId = msgEl.dataset.id;
-
         if(text && !msgEl.classList.contains('deleted')){
           if(navigator.vibrate) navigator.vibrate(10);
           showReplyPopup(text, msgId);
@@ -600,11 +634,10 @@ function enableLongPressSelection() {
       isSwiping = false;
     });
 
-    // ===== DESKTOP SUPPORT (MOUSE) =====
+    // ===== DESKTOP SUPPORT =====
     msgEl.addEventListener('mousedown', () => {
       longPressTimer = setTimeout(toggleSelect, LONG_PRESS_DELAY);
     });
-
     msgEl.addEventListener('mouseup', () => clearTimeout(longPressTimer));
     msgEl.addEventListener('mouseleave', () => clearTimeout(longPressTimer));
   });
@@ -643,107 +676,191 @@ function formatTime(createdAt){
 
   return "";
 }
+function getMessageDate(timestamp){
+  if (!timestamp) return null;
 
-// ===== RENDER MESSAGES ===== //
-function renderMessages(snapshot){
-  chatContainer.innerHTML = "";
+  // Support Firebase Timestamp & local number
+  if (timestamp.seconds) {
+    return new Date(timestamp.seconds * 1000);
+  }
+  return new Date(timestamp);
+}
 
-  snapshot.forEach(doc=>{
+function isDifferentDay(date1, date2){
+  if (!date1 || !date2) return true;
+
+  return (
+    date1.getDate() !== date2.getDate() ||
+    date1.getMonth() !== date2.getMonth() ||
+    date1.getFullYear() !== date2.getFullYear()
+  );
+}
+
+function formatDateCard(date){
+  const now = new Date();
+  const diffTime = now - date;
+  const diffDays = diffTime / (1000 * 60 * 60 * 24);
+
+  // ≤ 7 hari = nama hari (Senin)
+  if (diffDays <= 7){
+    return date.toLocaleDateString('id-ID', {
+      weekday: 'long'
+    });
+  }
+
+  // > 7 hari = 1 Januari 2026
+  return date.toLocaleDateString('id-ID', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric'
+  });
+}
+// CENTANG WA //
+function getCheckIcon(data) {
+  // Hanya tampil di pesan milik sendiri
+  if (data.senderId !== currentUser.uid) return "";
+
+  const deliveredTo = data.deliveredTo || {};
+  const readBy = data.readBy || {};
+
+  const deliveredCount = Object.keys(deliveredTo).length;
+  const readCount = Object.keys(readBy).length;
+
+  const svg = `
+    <svg xmlns="http://www.w3.org/2000/svg" 
+         viewBox="0 0 16 16" 
+         fill="currentColor" 
+         class="check-icon">
+      <path fill-rule="evenodd" 
+        d="M8 15A7 7 0 1 0 8 1a7 7 0 0 0 0 14Zm3.844-8.791a.75.75 0 0 0-1.188-.918l-3.7 4.79-1.649-1.833a.75.75 0 1 0-1.114 1.004l2.25 2.5a.75.75 0 0 0 1.15-.043l4.25-5.5Z" 
+        clip-rule="evenodd"/>
+    </svg>
+  `;
+
+  // SENT (baru dikirim)
+  if (deliveredCount <= 1) {
+    return `<span class="check sent">${svg}</span>`;
+  }
+
+  // DELIVERED (sudah sampai device lawan)
+  if (deliveredCount > 1 && readCount <= 1) {
+    return `<span class="check delivered">${svg}</span>`;
+  }
+
+  // READ (sudah dibaca)
+  if (readCount > 1) {
+    return `<span class="check read">${svg}</span>`;
+  }
+
+  return `<span class="check sent">${svg}</span>`;
+}
+// ===== RENDER MESSAGES DENGAN ANIMASI ===== //
+function renderMessages(snapshot, options = { appendOnly: false }) {
+  const e2ePlaceholder = document.getElementById("e2ePlaceholder");
+
+  // Hapus semua chat HANYA kalau bukan append
+  if (!options.appendOnly) {
+    chatContainer.innerHTML = "";
+    if (e2ePlaceholder) chatContainer.appendChild(e2ePlaceholder);
+  }
+
+  let lastMessageDate = null;
+
+  snapshot.forEach(doc => {
     const data = doc.data();
 
-    // ===== SKIP JIKA DIHAPUS HANYA UNTUK SAYA =====
-    if(data.deletedFor && data.deletedFor[currentUser.uid]){
-      return;
+    if (data.deletedFor && data.deletedFor[currentUser.uid]) return;
+
+    const createdAtRaw = data.createdAt || data.localCreatedAt;
+    const msgDate = getMessageDate(createdAtRaw);
+
+    if (!options.appendOnly && msgDate && isDifferentDay(msgDate, lastMessageDate)) {
+      const dateCard = document.createElement("div");
+      dateCard.className = "date-card";
+      dateCard.innerText = formatDateCard(msgDate);
+      chatContainer.appendChild(dateCard);
+      lastMessageDate = msgDate;
     }
 
-    // ===== FORMAT WAKTU (ANTI ERROR) =====
-    const time = formatTime(data.createdAt || data.localCreatedAt);
+    const time = formatTime(createdAtRaw);
+    const checkIcon = getCheckIcon(data);
 
-    // ===== ROW WRAPPER =====
     const rowEl = document.createElement("div");
     rowEl.classList.add("message-row");
-    rowEl.classList.add(data.senderId===currentUser.uid ? "user" : "partner");
+    rowEl.classList.add(data.senderId === currentUser.uid ? "user" : "partner");
 
-    // ===== BUBBLE =====
+    // 🔥 Tambahkan animasi hanya kalau appendOnly
+    if (options.appendOnly) {
+      rowEl.classList.add("new");
+    }
+
     const msgEl = document.createElement("div");
     msgEl.classList.add("message");
-    msgEl.classList.add(data.senderId===currentUser.uid ? "user" : "partner");
+    msgEl.classList.add(data.senderId === currentUser.uid ? "user" : "partner");
     msgEl.dataset.id = doc.id;
     msgEl.dataset.senderId = data.senderId;
 
-    // ===== JIKA DELETE FOR EVERYONE =====
     if (data.deleted === true) {
       msgEl.classList.add('deleted');
-
       msgEl.innerHTML = `
         <div class="swipe-reply-icon">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-            <path d="M3 10h10a4 4 0 0 1 0 8H7" stroke-linecap="round" stroke-linejoin="round"/>
-            <path d="M3 10l4-4M3 10l4 4" stroke-linecap="round" stroke-linejoin="round"/>
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-6">
+          <path fill-rule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25Zm4.28 10.28a.75.75 0 0 0 0-1.06l-3-3a.75.75 0 1 0-1.06 1.06l1.72 1.72H8.25a.75.75 0 0 0 0 1.5h5.69l-1.72 1.72a.75.75 0 1 0 1.06 1.06l3-3Z" clip-rule="evenodd" />
           </svg>
         </div>
-
-        <div class="deleted-msg">
-          <svg class="deleted-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round"
-              d="m9.75 9.75 4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-          </svg>
-          <span>Pesan dihapus</span>
-        </div>
-
+        <div class="deleted-msg"><span>Pesan dihapus</span></div>
         <div class="timestamp">${time}</div>
       `;
-    } 
-    // ===== PESAN NORMAL =====
-    else {
-
-      // ===== REPLY PREVIEW (WA STYLE - LEBIH STABIL) =====
+    } else {
       let replyHtml = "";
-      if(data.replyTo && data.replyTo.text){
+      if (data.replyTo && data.replyTo.text) {
         replyHtml = `
           <div class="reply-bubble">
             <div class="reply-author">Membalas pesan</div>
-            <div class="reply-text-inline">
-              ${data.replyTo.text.replace(/\n/g,'<br>')}
-            </div>
+            <div class="reply-text-inline">${data.replyTo.text.replace(/\n/g, '<br>')}</div>
           </div>
         `;
       }
 
-      // ===== ISI PESAN + REPLY + TIMESTAMP =====
       msgEl.innerHTML = `
         <div class="swipe-reply-icon">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-            <path d="M3 10h10a4 4 0 0 1 0 8H7" stroke-linecap="round" stroke-linejoin="round"/>
-            <path d="M3 10l4-4M3 10l4 4" stroke-linecap="round" stroke-linejoin="round"/>
+         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-6">
+          <path fill-rule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25Zm4.28 10.28a.75.75 0 0 0 0-1.06l-3-3a.75.75 0 1 0-1.06 1.06l1.72 1.72H8.25a.75.75 0 0 0 0 1.5h5.69l-1.72 1.72a.75.75 0 1 0 1.06 1.06l3-3Z" clip-rule="evenodd" />
           </svg>
         </div>
-
         ${replyHtml}
-
         <div class="message-text">
-          ${data.text ? data.text.replace(/\n/g,'<br>') : ""}
+          ${data.text ? data.text.replace(/\n/g, '<br>') : ""}
+        <div class="timestamp">
+          ${time} ${getCheckIcon(data)}
         </div>
-
-        <div class="timestamp">${time}</div>
       `;
     }
 
     rowEl.appendChild(msgEl);
     chatContainer.appendChild(rowEl);
+
+    // ❗ Hapus class 'new' setelah animasi selesai supaya tidak tetap
+    if (options.appendOnly) {
+      rowEl.addEventListener('animationend', () => {
+        rowEl.classList.remove('new');
+      });
+    }
   });
 
-  // ===== AUTO SCROLL HANYA JIKA USER DI BAWAH =====
-  if (isUserNearBottom()) {
-    chatContainer.scrollTo({
-      top: chatContainer.scrollHeight,
-      behavior: 'smooth'
-    });
+  // 🔥 Scroll otomatis ke bawah kalau flag tidak mencegah
+  if (!preventAutoScroll) {
+    chatContainer.scrollTop = chatContainer.scrollHeight;
   }
 
-  // ===== AKTIFKAN LONG PRESS LAGI =====
   enableLongPressSelection();
-  autoScrollBottom();
+}
+// ===== E2E ===== //
+function updateE2EPlaceholder(){
+  const e2eCard = document.getElementById("e2ePlaceholder");
+  if(!e2eCard) return;
+
+  e2eCard.style.display = "flex"; // selalu tampil
 }
 
 // ===== SAVE CHACE ===== //
@@ -814,91 +931,184 @@ scrollBtn.addEventListener("click", () => {
       sendMessage();
     }
   });
-function sendMessage(){
-    const text = input.value.trim();
-    if(!text) return;
-    const localTime = Date.now();
-    const messageData = {
-      senderId: currentUser.uid,
-      text,
-      createdAt: firebase.firestore.FieldValue.serverTimestamp(), // waktu server asli
-      localCreatedAt: localTime, // backup untuk cache & UI instan
-      deleted: false,
-      deletedFor: {}
-    };
+function sendMessage() {
+  const typingRef = rtdb.ref(`typing/${roomId}/${currentUser.uid}`);
+  typingRef.set(false);
+  const text = input.value.trim();
+  if (!text) return;
 
-    if(replyState.active){
-      messageData.replyTo = { messageId: replyState.messageId, text: replyState.text };
-    }
-    // 🔥 RENDER INSTAN KE UI (TANPA NUNGGU REALTIME)
-    const tempMessage = {
-      id: "temp_" + localTime,
-      ...messageData,
-      createdAt: localTime // pakai waktu lokal dulu
-    };
+  const localTime = Date.now();
+
+  const messageData = {
+    senderId: currentUser.uid,
+    text,
+    type: "text",
+    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+    localCreatedAt: localTime,
+    deleted: false,
+    deletedFor: {},
   
-    renderMessages({
-      forEach: (cb) => cb({
-        id: tempMessage.id,
-        data: () => tempMessage
-      })
-    });
-    db.collection("chatRooms").doc(roomId)
-      .collection("messages").add(messageData)
-      .then(docRef=>{
-        // Update cache dengan ID asli
-        saveMessageToCache({
-          ...messageData,
-          id: docRef.id,
-          createdAt: localTime
-        });
-      })
-      .catch(err=>console.error(err));
+    // 🔥 WAJIB TAMBAH INI
+    deliveredTo: {
+      [currentUser.uid]: true
+    },
+    readBy: {
+      [currentUser.uid]: true
+    }
+  };
 
-    input.value = "";
-    input.style.height = "auto";
-    cancelReply();
-    scrollChatToBottom(true);
+  // ===== Reply Support =====
+  if (replyState.active) {
+    messageData.replyTo = {
+      messageId: replyState.messageId,
+      text: replyState.text
+    };
   }
-function autoScrollBottom(){
-  chatContainer.scrollTop = chatContainer.scrollHeight;
+
+  // ===== Optimistic UI (biar langsung muncul tanpa delay) =====
+  const tempMessage = {
+    id: "temp_" + localTime,
+    ...messageData,
+    createdAt: localTime
+  };
+
+  renderMessages({
+    forEach: (cb) => cb({
+      id: tempMessage.id,
+      data: () => tempMessage
+    })
+  }, { appendOnly: true });
+
+  // ===== Kirim ke Firestore =====
+  db.collection("chatRooms")
+    .doc(roomId)
+    .collection("messages")
+    .add(messageData)
+    .then(docRef => {
+
+      // 🚀 UPDATE LAST MESSAGE DI ROOM (WA STYLE)
+      return db.collection("chatRooms")
+        .doc(roomId)
+        .update({
+          lastMessage: text,
+          lastSenderId: currentUser.uid,
+          lastTimestamp: firebase.firestore.FieldValue.serverTimestamp(),
+          lastType: "text"
+        })
+        .then(() => {
+          saveMessageToCache({
+            ...messageData,
+            id: docRef.id,
+            createdAt: localTime
+          });
+        });
+
+    })
+    .catch(err => console.error("Send message error:", err));
+
+  // ===== Reset Input =====
+  input.value = "";
+  input.style.height = "auto";
+  cancelReply();
+
+  // 🔥 Tetap fokus supaya keyboard tidak hilang
+  input.focus();
+
+  const val = input.value;
+  input.value = "";
+  input.value = val;
 }
-
-// ===== TINGGI TEXTAREA===== //
+// CENTANG DUA ABU DAN BIRU //
+function markAsDeliveredRealtime() {
+  db.collection("chatRooms")
+    .doc(roomId)
+    .collection("messages")
+    .where("senderId", "!=", currentUser.uid)
+    .onSnapshot(snapshot => {
+      snapshot.forEach(doc => {
+        const data = doc.data();
+        if (!data.deliveredTo?.[currentUser.uid]) {
+          doc.ref.update({
+            [`deliveredTo.${currentUser.uid}`]: true
+          });
+        }
+      });
+    });
+}
+function markAsReadRealtime() {
+  db.collection("chatRooms")
+    .doc(roomId)
+    .collection("messages")
+    .where("senderId", "!=", currentUser.uid)
+    .onSnapshot(snapshot => {
+      snapshot.forEach(doc => {
+        const data = doc.data();
+        if (!data.readBy?.[currentUser.uid]) {
+          doc.ref.update({
+            [`readBy.${currentUser.uid}`]: true
+          });
+        }
+      });
+    });
+}
+// ===== TINGGI TEXTAREA ===== //
 function adjustInputHeight() {
-  const lineHeight = 15; // tinggi 1 baris (sesuai min-height di CSS)
-  input.style.height = 'auto'; // reset
-  const scrollHeight = input.scrollHeight;
-
-  // Kalau scrollHeight <= lineHeight → tetap satu baris
-  input.style.height = Math.max(scrollHeight, lineHeight) + 'px';
+  input.style.height = 'auto';
+  input.style.height = input.scrollHeight + 'px';
 }
 
 // ===== PADDING CHAT ===== //
-function adjustChatPadding() {
+function adjustChatPadding(forceScroll = false) {
   const inputHeight = inputContainer.offsetHeight;
-  chatContainer.style.paddingBottom = inputHeight + 5 + 'px'; // +12px jarak ekstra
-}
 
-// ===== scroll otomatis ===== //
-function scrollChatToBottom(smooth = true) {
-  if (smooth) {
-    chatContainer.scrollTo({
-      top: chatContainer.scrollHeight,
-      behavior: 'smooth'
-    });
-  } else {
+  // Extra space untuk keyboard & safe area
+  const extraSpace = 70;
+
+  chatContainer.style.paddingBottom = (inputHeight + extraSpace) + "px";
+
+  // Hanya scroll otomatis kalau preventAutoScroll = false
+  if (!preventAutoScroll && (forceScroll || isUserNearBottom())) {
     chatContainer.scrollTop = chatContainer.scrollHeight;
   }
 }
+// ===== Jaga chat & input naik saat keyboard muncul ===== //
+window.visualViewport?.addEventListener('resize', () => {
+  const offsetTop = window.visualViewport.offsetTop;
+  const viewportHeight = window.visualViewport.height;
 
+  // Header tetap di atas
+  if (header) {
+    header.style.top = offsetTop + 'px';
+  }
+
+  // Input bar di atas keyboard
+  if (inputBar) {
+    const inputHeight = inputContainer.offsetHeight;
+    const extraSpace = 16; // jarak minimal antara chat & input
+    inputBar.style.bottom = (window.innerHeight - viewportHeight - offsetTop) + 'px';
+
+    // Chat container ikut naik supaya tidak tertutup keyboard
+    if (chatContainer) {
+      chatContainer.style.paddingBottom = (inputHeight + extraSpace + (window.innerHeight - viewportHeight - offsetTop)) + 'px';
+    }
+
+    // Reply popup juga ikut naik jika aktif
+    if (replyPopup && replyState.active) {
+      replyPopup.style.bottom = (inputHeight + extraSpace + (window.innerHeight - viewportHeight - offsetTop)) + 'px';
+    }
+
+    // Scroll otomatis ke bawah biar input & reply terlihat
+    if (!preventAutoScroll) {
+      chatContainer.scrollTop = chatContainer.scrollHeight;
+    }
+  }
+});
 // ===== INPUTBOX AUTO RADIUS ===== //
 function adjustInputRadius() {
   const baseRadius = 24;
   const minTopRadius = 14;
   const lineHeight = 20; // samakan dengan textarea CSS
 
-  // 🔥 KUNCI: kalau tidak ada reply, radius full terus
   if (!replyState.active) {
     inputBox.style.borderRadius = "24px";
     return;
@@ -907,19 +1117,13 @@ function adjustInputRadius() {
   const currentHeight = input.scrollHeight;
   const lines = Math.ceil(currentHeight / lineHeight);
 
-  // Saat ada reply + masih 1 baris
-  // tetap sedikit lebih kecil biar nyatu dengan reply card
   if (lines <= 1) {
     inputBox.style.borderRadius = "18px 18px 24px 24px";
     return;
   }
 
-  // Semakin tinggi textarea, radius atas makin mengecil
-  let topRadius = baseRadius - (lines * 10);
-
-  if (topRadius < minTopRadius) {
-    topRadius = minTopRadius;
-  }
+  let topRadius = baseRadius - (lines * 8);
+  if (topRadius < minTopRadius) topRadius = minTopRadius;
 
   inputBox.style.borderRadius = `${topRadius}px ${topRadius}px 24px 24px`;
 }
@@ -929,44 +1133,85 @@ function showReplyPopup(text, msgId){
   replyState.active = true;
   replyState.messageId = msgId;
   replyState.text = text;
-
   replyTextEl.innerText = text;
-
-  // tampilkan inline bubble (bukan fixed)
   replyPopup.classList.add("show");
 
-  // 🔥 penting: update padding & scroll biar chat ga ketutup
-  setTimeout(() => {
-    adjustInputRadius();
-    adjustChatPadding();
-    scrollChatToBottom(false);
-  }, 50);
+  // ❌ NONAKTIFKAN scroll otomatis saat reply popup
+  preventAutoScroll = true;
+
+  // Fokus ke textarea supaya keyboard muncul
+  input.focus();
+
+  // Taruh cursor di akhir
+  const val = input.value;
+  input.value = "";
+  input.value = val;
+
+  // Tunggu layout stabil baru adjust
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      adjustInputRadius();
+      adjustInputHeight();
+      adjustChatPadding(false); // forceScroll = false, tetap tidak scroll ke bawah
+    });
+  });
 }
 function cancelReply(){
+  // Simpan posisi cursor dulu
+  const cursorPos = input.selectionStart;
+
   replyState.active = false;
   replyState.messageId = null;
   replyState.text = "";
-
   replyPopup.classList.remove("show");
 
-  // update layout lagi setelah bubble hilang
-  setTimeout(() => {
+  // Jangan aktifkan scroll dulu
+  preventAutoScroll = true;
+
+  // Paksa tetap fokus (ANTI KEYBOARD CLOSE)
+  requestAnimationFrame(() => {
+    input.focus();
+
+    // Kembalikan posisi cursor
+    input.setSelectionRange(cursorPos, cursorPos);
+
     adjustInputRadius();
-    adjustChatPadding();
-  }, 200);
+    adjustInputHeight();
+    adjustChatPadding(false);
+
+    // Aktifkan lagi auto scroll setelah stabil
+    setTimeout(() => {
+      preventAutoScroll = false;
+    }, 150);
+  });
 }
 
-cancelReplyBtn.addEventListener("click", cancelReply);
-
-// Event listener input textarea
+// ===== EVENT LISTENERS DAN TOMBOL ===== //
+// 1️⃣ Cegah textarea kehilangan fokus
+cancelReplyBtn.addEventListener("pointerdown", (e) => {
+  e.preventDefault();   // cegah blur
+});
+// 2️⃣ Logic cancel tetap normal
+cancelReplyBtn.addEventListener("click", (e) => {
+  e.stopPropagation();
+  cancelReply();
+  // pastikan tetap fokus
+  requestAnimationFrame(() => {
+    input.focus();
+  });
+});
 input.addEventListener('input', () => {
   adjustInputHeight();
   adjustChatPadding();
-  scrollChatToBottom(); // scroll otomatis
   adjustInputRadius();
 });
+input.addEventListener("focus", () => {
+  setTimeout(() => {
+    adjustChatPadding(true);
+  }, 300); // tunggu keyboard naik
+});
 
-// ===== EMOJI PICKER =====
+// ===== EMOJI PICKER ===== //
 const emojis = ['😀','😃','😄','😁','😆','😅','😂','🤣','😊','😇','🙂','🙃','😉','😌','😍','🥰','😘','😗','😙','😚','😋','😛','😝','😜','🤪','🤨','🧐','🤓','😎','🤩','🥳','😏','😒','😞','😔','😟','😕','🙁','☹️','😣','😖','😫','😩','🥺','😢','😭'];
 emojis.forEach(e=>{
   const span = document.createElement('span');

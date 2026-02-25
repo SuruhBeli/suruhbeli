@@ -15,7 +15,7 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.10.1/lottie.min.js"></script>
 <style>
 :root{
   /* ===== LIGHT MODE (DEFAULT SEKARANG) ===== */
@@ -314,7 +314,8 @@ h1{
   <!-- POPUP -->
   <div class="popup" id="popup">
     <div class="popup-box">
-      <div class="loader" id="loader"></div>
+      <!-- Ganti loader biasa dengan Lottie container -->
+      <div id="lottieLoader" style="width:80px; height:80px; margin:0 auto;"></div>
       <div class="popup-text" id="popupText">
         Mengambil lokasi...
       </div>
@@ -343,19 +344,31 @@ h1{
 
   const popup = document.getElementById("popup");
   const popupText = document.getElementById("popupText");
+  let lottieAnim = lottie.loadAnimation({
+    container: document.getElementById('lottieLoader'), // container div
+    renderer: 'svg',
+    loop: true,
+    autoplay: false, // start manual
+    path: 'loading.json' // ganti dengan file Lottie JSON kamu
+  });
   const loader = document.getElementById("loader");
 
-  function showPopup(text, loading = true){
-    popup.style.display = "flex";
-    popupText.innerText = text;
-    loader.style.display = loading ? "block" : "none";
+function showPopup(text, loading = true){
+  popup.style.display = "flex";
+  popupText.innerText = text;
+  if(loading){
+    lottieAnim.goToAndPlay(0, true); // mulai animasi
+  } else {
+    lottieAnim.stop(); // hentikan animasi
   }
+}
 
-  function hidePopup(delay = 1200){
-    setTimeout(()=>{
-      popup.style.display = "none";
-    }, delay);
-  }
+function hidePopup(delay = 1200){
+  setTimeout(()=>{
+    popup.style.display = "none";
+    lottieAnim.stop(); // pastikan animasi berhenti
+  }, delay);
+}
 
   // ======================
   // AMBIL LOKASI (SAFE)

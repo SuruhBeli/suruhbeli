@@ -6,6 +6,7 @@
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#FB923C">
   <link rel="icon" href="ikon-512.png">
+  <link rel="stylesheet" href="aktivitas.css">
 <title>SuruhBeli - Aktivitas</title>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
 
@@ -14,527 +15,6 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 
-<style>
-:root {
-  --bg-main: #FFF7ED;
-  --text-main: #7C2D12;
-  --card-bg: #ffffff;
-  --border-soft: #FED7AA;
-  --text-secondary: #374151;
-  --text-muted: #6B7280;
-  --accent: #FB923C;
-  --active-tab: #FEEBC8;
-  --success: #10B981;
-  --error: #EF4444;
-  --badge-proses: #C2410C;
-  --badge-selesai: #065F46;
-  --badge-gagal: #991B1B;
-  --dash: #D1D5DB;
-  --line: #E5E7EB;
-  --receipt-text: #2D2D2D;
-  --navbar-bg: #FFF7ED;
-  --navbar-text: #6B7280;
-  --navbar-active-bg: #FB923C;
-  --navbar-active-text: #FB923C;
-  --navbar-border-radius: 35px;
-  --navbar-shadow: 0 8px 20px rgba(0,0,0,0.15);
-  --navbar-glass-bg: rgba(255,255,255,0.55);
-  --navbar-glass-border: 1px solid rgba(255,255,255,0.35);
-  --navbar-glass-blur: blur(14px);
-  --nav-circle-shadow: none;
-}
-
-body.dark-mode {
-  --bg-main: #0F172A;
-  --text-main: #F8FAFC;
-  --card-bg: #1E293B;
-  --border-soft: #334155;
-  --text-secondary: #E2E8F0;
-  --text-muted: #94A3B8;
-  --accent: #FB923C;
-  --active-tab: #1E293B;
-  --success: #10B981;
-  --error: #EF4444;
-  --badge-proses: #F97316;
-  --badge-selesai: #22C55E;
-  --badge-gagal: #EF4444;
-  --dash: #475569;
-  --line: #334155;
-  --receipt-text: #F8FAFC;
-  --navbar-bg: rgba(30,41,59,0.85);
-  --navbar-text: #94A3B8;
-  --navbar-active-bg: #FB923C;
-  --navbar-active-text: #FB923C;
-  --navbar-shadow: 0 10px 30px rgba(0,0,0,0.45);
-  --navbar-glass-bg: rgba(15,23,42,0.65);
-  --navbar-glass-border: 1px solid rgba(148,163,184,0.15);
-  --navbar-glass-blur: blur(16px);
-  --nav-circle-shadow:
-    0 8px 22px rgba(0,0,0,0.35),
-    inset 0 2px 6px rgba(255,255,255,0.08);
-}
-
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-  font-family: 'Nunito', sans-serif;
-  -webkit-tap-highlight-color: transparent;
-  user-select:none;
-  -webkit-user-select:none;
-  outline:none;
-}
-
-body {
-  background: var(--bg-main);
-  color: var(--text-main);
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  padding-bottom: 90px;
-  transition: background 0.3s, color 0.3s;
-}
-
-.scroll-header {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 70px;
-  background: var(--accent);
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 700;
-  font-size: 16px;
-  z-index: 1000;
-  border-radius: 0 0 12px 12px;
-}
-
-.container {
-  padding: 16px;
-  margin-top: 80px;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.tabs {
-  display: flex;
-  gap: 8px;
-  margin-bottom: 12px;
-}
-
-.tab {
-  flex: 1;
-  text-align: center;
-  padding: 12px;
-  border-radius: 12px;
-  cursor: pointer;
-  font-weight: 700;
-  background: var(--active-tab);
-  color: var(--text-main);
-  transition: 0.2s;
-}
-
-.tab.active {
-  background: var(--accent);
-  color: white;
-}
-
-.order-card {
-  background: var(--card-bg);
-  border-radius: 16px;
-  padding: 16px;
-  box-shadow: 0 6px 15px rgba(0,0,0,0.05);
-  border: 1px solid var(--border-soft);
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.order-card .status {
-  align-self: flex-start;
-  padding: 4px 8px;
-  border-radius: 12px;
-  font-size: 12px;
-  font-weight: 700;
-  color: white;
-}
-
-.status.proses {
-  background: var(--accent);
-}
-
-.status.selesai {
-  background: var(--success);
-}
-
-.status.gagal {
-  background: var(--error);
-}
-
-.order-card .btn-group {
-  display: flex;
-  justify-content: space-between;
-  gap: 8px;
-  margin-top: 8px;
-}
-
-.order-card button {
-  flex: 1;
-  padding: 8px 12px;
-  border: none;
-  border-radius: 12px;
-  background: var(--accent);
-  color: white;
-  font-weight: 700;
-  cursor: pointer;
-  transition: 0.2s;
-}
-
-.order-card button:disabled {
-  background: var(--card-bg);
-  color: var(--text-muted);
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.order-card button:active {
-  transform: scale(0.96);
-}
-
-/* POPUP OVERLAY */
-.popup-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0,0,0,0.35);
-  backdrop-filter: blur(4px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  opacity: 0;
-  pointer-events: none;
-  transition: 0.2s;
-  z-index: 9999;
-}
-
-.popup-overlay.show {
-  opacity: 1;
-  pointer-events: auto;
-}
-
-#popupAlert .receipt {
-  animation: popIn 0.25s ease;
-}
-
-@keyframes popIn {
-  from { transform: scale(0.9); opacity: 0; }
-  to { transform: scale(1); opacity: 1; }
-}
-
-/* ===== POPUP ALERT FRAME ===== */
-.confirm-card {
-  position: relative;
-  width: 320px;
-  max-width: 90%;
-  background: var(--card-bg);
-  border-radius: 18px;
-  padding: 20px;
-  box-shadow: 0 20px 40px rgba(0,0,0,0.15);
-  overflow: visible;
-  animation: popIn 0.25s ease;
-}
-
-.confirm-left {
-  width: 75%;
-  z-index: 2;
-}
-
-.confirm-title {
-  font-size: 16px;
-  font-weight: 800;
-  color: var(--text-main);
-}
-
-.confirm-sub {
-  font-size: 13px;
-  color: var(--text-muted);
-  margin: 6px 0 16px 0;
-}
-
-.confirm-buttons {
-  display: flex;
-  gap: 8px;
-}
-
-.btn-primary {
-  flex: 1;
-  padding: 10px;
-  border: none;
-  border-radius: 12px;
-  background: var(--accent);
-  color: white;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.btn-secondary {
-  flex: 1;
-  padding: 10px;
-  border: none;
-  border-radius: 12px;
-  background: var(--card-bg);
-  color: var(--text-main);
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.confirm-img {
-  position: absolute;
-  right: -50px;
-  top: -15px;
-  height: 110%;
-  object-fit: contain;
-  pointer-events: none;
-  opacity: 0.95;
-}
-
-/* STRUK */
-.receipt {
-  width: 320px;
-  max-width: 90%;
-  background: var(--card-bg);
-  border-radius: 18px;
-  padding: 16px 14px;
-  box-shadow: 0 20px 40px rgba(0,0,0,0.15);
-  font-size: 13px;
-  color: var(--receipt-text);
-}
-
-.receipt-header {
-  text-align: center;
-  border-bottom: 1px dashed var(--line);
-  padding-bottom: 10px;
-  margin-bottom: 10px;
-}
-
-.receipt-logo {
-  width: 42px;
-  height: 42px;
-  object-fit: contain;
-  margin-bottom: 4px;
-}
-
-.receipt-title {
-  font-weight: 800;
-  font-size: 16px;
-  color: var(--text-main);
-}
-
-.receipt-sub {
-  font-size: 11px;
-  color: var(--text-muted);
-}
-
-.dash {
-  border-top: 1px dashed var(--dash);
-  margin: 10px 0;
-}
-
-.row {
-  display: flex;
-  justify-content: space-between;
-  margin: 4px 0;
-  gap: 8px;
-}
-
-.label {
-  color: var(--text-muted);
-}
-
-.value {
-  font-weight: 600;
-  text-align: right;
-}
-
-.status-badge {
-  display: inline-block;
-  padding: 4px 8px;
-  border-radius: 8px;
-  font-size: 11px;
-  font-weight: 700;
-}
-
-.badge-proses {
-  background: var(--bg-main);
-  color: var(--badge-proses);
-}
-
-.badge-selesai {
-  background: var(--success);
-  color: var(--badge-selesai);
-}
-
-.badge-gagal {
-  background: var(--error);
-  color: var(--badge-gagal);
-}
-
-.receipt-footer {
-  text-align: center;
-  font-size: 11px;
-  color: var(--text-muted);
-  margin-top: 8px;
-}
-
-.close-btn {
-  margin-top: 12px;
-  width: 100%;
-  padding: 12px;
-  border: none;
-  border-radius: 12px;
-  background: var(--accent);
-  color: white;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-/* NAVBAR */
-.navbar-bottom {
-  position: fixed;
-  bottom: 20px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 90%;
-  max-width: 450px;
-  height: 70px;
-
-  background: var(--navbar-bg);
-  border-radius: var(--navbar-border-radius);
-  box-shadow: var(--navbar-shadow);
-
-  display: flex;
-  justify-content: space-around;
-  align-items: center;
-  z-index: 100;
-  transition: all 0.35s ease;
-}
-/* ===============================
-   MODE GEMPA / TRUE GLASSMORPHISM
-   =============================== */
-.navbar-bottom.gempa-mode{
-  background: var(--navbar-glass-bg);
-  backdrop-filter: blur(18px) saturate(140%);
-  -webkit-backdrop-filter: blur(18px) saturate(140%);
-  border: var(--navbar-glass-border);
-
-  /* Shadow glass (lebih premium, tidak berat) */
-  box-shadow:
-    0 10px 30px rgba(0,0,0,0.25),
-    inset 0 1px 0 rgba(255,255,255,0.15);
-}
-
-/* Highlight tipis biar efek glass lebih hidup */
-.navbar-bottom.gempa-mode::before{
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 12%;
-  width: 76%;
-  height: 1px;
-  background: linear-gradient(
-    to right,
-    transparent,
-    rgba(255,255,255,0.35),
-    transparent
-  );
-  pointer-events: none;
-}
-
-/* ===============================
-   NAV ITEM
-   =============================== */
-.nav-item {
-  position: relative;
-  flex: 1;
-  text-align: center;
-  cursor: pointer;
-  color: var(--navbar-text);
-  z-index: 2; /* di atas circle */
-  transition: transform 0.2s ease;
-}
-
-/* Tap effect (mobile friendly hover) */
-.nav-item:active{
-  transform: scale(0.95);
-}
-
-/* ===============================
-   ICON SVG
-   =============================== */
-.nav-item svg {
-  width: 28px;
-  height: 28px;
-  fill: none;
-  stroke: var(--navbar-text);
-  stroke-width: 1.3;
-  transition: 
-    transform 0.4s cubic-bezier(.68,-0.55,.27,1.55),
-    stroke 0.3s ease;
-}
-
-.nav-item.active svg {
-  stroke: var(--navbar-active-text);
-  transform: translateY(-15px) scale(1.25);
-}
-
-/* ===============================
-   TEXT LABEL (FIX BUG WARNA)
-   =============================== */
-.nav-item span {
-  display: block;
-  margin-top: 1px;
-  font-size: 15px;
-  font-weight: 700;
-  transition: transform 0.3s ease, color 0.3s ease;
-
-  /* 🔥 FIX: default harus text biasa, bukan aktif */
-  color: var(--navbar-text);
-}
-
-.nav-item.active span {
-  transform: translateY(-5px);
-  color: var(--navbar-active-text);
-}
-
-/* ===============================
-   ACTIVE BACKGROUND CIRCLE (SMOOTH)
-   =============================== */
-.nav-active-circle {
-  position: absolute;
-  top: -22px;
-  width: 62px;
-  height: 62px;
-
-  background: var(--border-soft);
-  border-radius: 50%;
-
-  /* pakai variable biar dinamis */
-  box-shadow: var(--nav-circle-shadow);
-
-  transition:
-    left 0.45s cubic-bezier(.68,-0.55,.27,1.55),
-    transform 0.3s ease;
-
-  z-index: 1;
-  pointer-events: none;
-}
-</style>
 </head>
 <body>
 
@@ -543,6 +23,7 @@ body {
 <div class="container">
   <div class="tabs">
     <div class="tab active" data-tab="aktif">Pesanan Aktif</div>
+    <div class="tab" data-tab="diproses">Diproses</div>
     <div class="tab" data-tab="riwayat">Riwayat</div>
   </div>
 
@@ -663,9 +144,11 @@ async function loadOrders(){
 
     orders.sort((a,b)=>b.createdAt - a.createdAt);
 
-    const filtered = orders.filter(o=>{
-      if(activeTab==='aktif') return o.status==='Dibuat' || o.status==='Diproses';
-      else return o.status==='Selesai' || o.status==='Dibatalkan';
+    const filtered = orders.filter(o => {
+      if(activeTab === 'aktif') return o.status === 'Dibuat';
+      if(activeTab === 'diproses') return o.status === 'Diproses';
+      // riwayat
+      return o.status === 'Selesai' || o.status === 'Dibatalkan';
     });
 
     if(filtered.length===0){
@@ -674,31 +157,78 @@ async function loadOrders(){
     }
 
     container.innerHTML = '';
-    filtered.forEach(order=>{
-      const statusClass = order.status==='Dibuat'||order.status==='Diproses'?'proses':
-                          order.status==='Selesai'?'selesai':'gagal';
+filtered.forEach(order=>{
+  let statusClass = '';
+  switch(order.status){
+    case 'Dibuat': statusClass = 'proses'; break;
+    case 'Diproses': statusClass = 'diproses'; break;
+    case 'Selesai': statusClass = 'selesai'; break;
+    case 'Dibatalkan': statusClass = 'gagal'; break;
+    default: statusClass = 'proses';
+  }
 
-      const card = document.createElement('div');
-      card.className = 'order-card';
-      const createdTime = order.createdAt.getTime();
-      const now = new Date().getTime();
-      const canCancel = order.status === 'Dibuat' && (now - createdTime < 10 * 60 * 1000);
-      card.innerHTML = `
-        <div><b>${order.layanan || '-'}</b></div>
-        <div>Pesanan: ${order.pesanan || '-'}</div>
-        <div>Ongkir: Rp ${order.ongkir?.toLocaleString('id-ID') || '-'}</div>
-        <div class="status ${statusClass}">${order.status}</div>
-        <div style="font-size:12px;">${order.createdAt.toLocaleString("id-ID")}</div>
-        <button onclick="showDetail('${order.id}')">Detail</button>
-        <button ${canCancel ? '' : 'disabled'} onclick="confirmCancel('${order.id}')">Batalkan</button>
-      `;
-      container.appendChild(card);
-    });
+  const card = document.createElement('div');
+  card.className = 'order-card';
+  const createdTime = order.createdAt.getTime();
+  const now = new Date().getTime();
+  const canCancel = order.status === 'Dibuat' && (now - createdTime < 10 * 60 * 1000);
+
+  // Tombol Batalkan hanya untuk status Dibuat
+  const cancelButton = canCancel ? `<button onclick="confirmCancel('${order.id}')">Batalkan</button>` : '';
+
+  // Tombol Chat Driver hanya untuk status Diproses
+  const chatButton = order.status === 'Diproses' && order.kurir ? `
+    <button onclick="chatDriver('${order.kurir}', '${order.id}')">Chat Driver</button>
+  ` : '';
+
+  card.innerHTML = `
+    <div><b>${order.layanan || '-'}</b></div>
+    <div>Pesanan: ${order.pesanan || '-'}</div>
+    <div>Ongkir: Rp ${order.ongkir?.toLocaleString('id-ID') || '-'}</div>
+    <div class="status ${statusClass}">${order.status}</div>
+    <div style="font-size:12px;">${order.createdAt.toLocaleString("id-ID")}</div>
+    <button onclick="showDetail('${order.id}')">Detail</button>
+    ${cancelButton}
+    ${chatButton}
+  `;
+
+  container.appendChild(card);
+});
 
   }catch(e){
     container.innerHTML = "<p>Gagal memuat pesanan.</p>";
     console.log(e);
   }
+}
+
+async function chatDriver(kurirUid, orderId){
+  if(!currentUser) return;
+
+  const roomsRef = db.collection('chatRooms');
+  let roomId = null;
+
+  // Cari room yang sudah ada antara user dan kurir
+  const snapshot = await roomsRef
+    .where(`participants.${currentUser.uid}`, '==', true)
+    .where(`participants.${kurirUid}`, '==', true)
+    .get();
+
+  if(!snapshot.empty){
+    roomId = snapshot.docs[0].id; // pakai room pertama yang ketemu
+  } else {
+    // buat room baru
+    const newRoom = await roomsRef.add({
+      participants: {
+        [currentUser.uid]: true,
+        [kurirUid]: true
+      },
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    roomId = newRoom.id;
+  }
+
+  // redirect ke chat
+  window.location.href = `chat.html?roomId=${roomId}`;
 }
 
 function getStatusBadge(status){

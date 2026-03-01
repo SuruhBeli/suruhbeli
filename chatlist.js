@@ -422,6 +422,7 @@ window.addEventListener("load", loadTheme);
 const navItems = document.querySelectorAll('.nav-item');
 const navCircle = document.getElementById('navCircle');
 const navbarBottom = document.querySelector('.navbar-bottom');
+
 if (navbarBottom) {
   navbarBottom.classList.toggle('gempa-mode');
 }
@@ -473,9 +474,9 @@ navItems.forEach((item, idx) => {
     item.classList.add('active');
     updateNavCircle(idx);
 
-    // Delay biar animasi circle halus
+    // Delay biar animasi circle halus (UX tetap sama)
     setTimeout(() => {
-      navigateNoStack(targetPage); // 🔥 INI YANG PENTING
+      navigateNoStack(targetPage);
     }, 220);
   });
 });
@@ -491,3 +492,35 @@ function updateActiveCircle() {
 
 window.addEventListener('resize', updateActiveCircle);
 window.addEventListener('load', updateActiveCircle);
+
+
+/* === GLOBAL BACK BEHAVIOR (FINAL - NO LOOP, APP STYLE) === */
+(function () {
+  const page = window.location.pathname.split("/").pop() || "index.html";
+
+  // 🔥 PENTING: HANYA kunci history di halaman NON-INDEX
+  if (page !== "index.html") {
+    // Bersihkan history lama lalu set state baru
+    history.replaceState({ page }, "", location.href);
+    history.pushState({ page }, "", location.href);
+
+    // Back dari halaman apapun → langsung ke index (tanpa lewat history lama)
+    window.addEventListener("popstate", function () {
+      window.location.replace("index.html");
+    });
+
+  } else {
+    // 🔥 KHUSUS INDEX: cegah balik ke halaman lama (pesan, profil, dll)
+    history.replaceState({ page: "index" }, "", location.href);
+
+    window.addEventListener("popstate", function () {
+      // Back di index = keluar app (mode PWA / Android)
+      window.close();
+
+      // Fallback jika browser blok close()
+      setTimeout(() => {
+        history.go(-1);
+      }, 100);
+    });
+  }
+})();

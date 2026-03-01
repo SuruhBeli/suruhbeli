@@ -1,5 +1,7 @@
 // ===== GLOBAL CACHE ===== //
 window.globalCache = {};
+// ===== LOTTIE INSTANCES (ANTI DUPLIKAT) ===== //
+window.lottieInstances = {};
 // ===== INDEXEDDB ===== //
 let dbIDB;
 const request = indexedDB.open("appCacheDB", 1);
@@ -232,10 +234,20 @@ async function cacheBannerCarousel() {
 // ===== LOTTIES ===== //
 async function cacheLotties() {
   const lottiesList = ["makanan","belanja","barang","lainnya","ikon-1"];
+  
   lottiesList.forEach(name => {
     const path = `${name}.json`;
     const container = document.getElementById(`lottie-${name}`) || lottieContainer;
-    lottie.loadAnimation({ container, renderer:'svg', loop:true, autoplay:true, path });
+
+    // Hapus animasi lama kalau ada
+    if(window.lottieInstances[name]) {
+      window.lottieInstances[name].destroy();
+    }
+
+    // Load animasi baru
+    const anim = lottie.loadAnimation({ container, renderer:'svg', loop:true, autoplay:true, path });
+    window.lottieInstances[name] = anim;
+
     saveToCache(`lottie-${name}`, path);
   });
 }
@@ -267,6 +279,7 @@ window.addEventListener("load", loadTheme);
 const navItems = document.querySelectorAll('.nav-item');
 const navCircle = document.getElementById('navCircle');
 const navbarBottom = document.querySelector('.navbar-bottom');
+
 if (navbarBottom) {
   navbarBottom.classList.toggle('gempa-mode');
 }
@@ -318,9 +331,9 @@ navItems.forEach((item, idx) => {
     item.classList.add('active');
     updateNavCircle(idx);
 
-    // Delay biar animasi circle halus
+    // Delay biar animasi circle halus (UX tetap sama)
     setTimeout(() => {
-      navigateNoStack(targetPage); // 🔥 INI YANG PENTING
+      navigateNoStack(targetPage);
     }, 220);
   });
 });
@@ -337,6 +350,37 @@ function updateActiveCircle() {
 window.addEventListener('resize', updateActiveCircle);
 window.addEventListener('load', updateActiveCircle);
 
+
+/* === GLOBAL BACK BEHAVIOR (FINAL - NO LOOP, APP STYLE) === */
+(function () {
+  const page = window.location.pathname.split("/").pop() || "index.html";
+
+  // 🔥 PENTING: HANYA kunci history di halaman NON-INDEX
+  if (page !== "index.html") {
+    // Bersihkan history lama lalu set state baru
+    history.replaceState({ page }, "", location.href);
+    history.pushState({ page }, "", location.href);
+
+    // Back dari halaman apapun → langsung ke index (tanpa lewat history lama)
+    window.addEventListener("popstate", function () {
+      window.location.replace("index.html");
+    });
+
+  } else {
+    // 🔥 KHUSUS INDEX: cegah balik ke halaman lama (pesan, profil, dll)
+    history.replaceState({ page: "index" }, "", location.href);
+
+    window.addEventListener("popstate", function () {
+      // Back di index = keluar app (mode PWA / Android)
+      window.close();
+
+      // Fallback jika browser blok close()
+      setTimeout(() => {
+        history.go(-1);
+      }, 100);
+    });
+  }
+})();
 // ===== SERVICE WORKER (SAFE DEV MODE) ===== //
 if ("serviceWorker" in navigator && location.protocol === "https:") {
   window.addEventListener("load", () => {
@@ -360,7 +404,14 @@ async function loadInitialCache() {
     const path = await getFromCache(`lottie-${name}`);
     if (path) {
       const container = document.getElementById(`lottie-${name}`) || lottieContainer;
-      lottie.loadAnimation({ container, renderer:'svg', loop:true, autoplay:true, path });
+  
+      // Hapus animasi lama
+      if(window.lottieInstances[name]) {
+        window.lottieInstances[name].destroy();
+      }
+  
+      const anim = lottie.loadAnimation({ container, renderer:'svg', loop:true, autoplay:true, path });
+      window.lottieInstances[name] = anim;
     }
   });
   const authData = await getFromCache("auth");

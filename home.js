@@ -385,3 +385,47 @@ async function loadInitialCache() {
   const authData = await getFromCache("auth");
   if (authData) welcomeText.innerText = `Halo, ${authData.name} 👋`;
 }
+
+/* =========================================================
+   🔥 FINAL BACK CONTROL (INDEX ROOT LOCK - NO HISTORY RETURN)
+   Behavior:
+   - Dari halaman lain → index (pakai replace)
+   - Di index → back = keluar app (bukan balik ke pesan/profil)
+========================================================= */
+(function () {
+  const page = window.location.pathname.split("/").pop() || "index.html";
+
+  // ===== KHUSUS HALAMAN INDEX ===== //
+  if (page === "index.html" || page === "") {
+
+    // 1. HAPUS semua jejak history sebelumnya (SUPER PENTING)
+    history.replaceState(null, "", "index.html");
+
+    // 2. Tambah state dummy supaya back bisa ditangkap
+    history.pushState({ root: true }, "", "index.html");
+
+    // 3. Tangkap tombol BACK Android / Browser
+    window.addEventListener("popstate", function (e) {
+      // Cegah balik ke halaman lama (pesan, profil, dll)
+      history.pushState({ root: true }, "", "index.html");
+
+      // Coba close app (PWA / WebView Android)
+      if (window.navigator.app) {
+        window.navigator.app.exitApp();
+        return;
+      }
+
+      // Fallback close (beberapa browser support)
+      window.close();
+
+      // Fallback terakhir (kalau browser blok close)
+      setTimeout(() => {
+        // Paksa keluar dari history stack
+        location.href = "about:blank";
+      }, 50);
+    });
+
+    console.log("🔒 Index locked: Back = Exit App");
+
+  }
+})();

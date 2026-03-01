@@ -491,3 +491,28 @@ function updateActiveCircle() {
 
 window.addEventListener('resize', updateActiveCircle);
 window.addEventListener('load', updateActiveCircle);
+/* =====================================================
+   🔥 BACK CONTROL PROFIL → LANGSUNG KE INDEX (NO STACK)
+   Nyambung dengan index root lock
+===================================================== */
+(function () {
+  const page = window.location.pathname.split("/").pop();
+
+  if (page === "profil.html") {
+
+    // Bersihkan history lama
+    history.replaceState(null, "", location.href);
+
+    // Tambah state dummy supaya back bisa ditangkap
+    history.pushState({ profil: true }, "", location.href);
+
+    window.addEventListener("popstate", function () {
+
+      // Paksa langsung ke index TANPA history
+      window.location.replace("index.html");
+
+    });
+
+    console.log("🔁 Profil locked: Back → Index");
+  }
+})();

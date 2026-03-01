@@ -379,7 +379,6 @@ safeOnClick("btnInvite", () => {
 const navItems = document.querySelectorAll('.nav-item');
 const navCircle = document.getElementById('navCircle');
 const navbarBottom = document.querySelector('.navbar-bottom');
-
 if (navbarBottom) {
   navbarBottom.classList.toggle('gempa-mode');
 }
@@ -431,9 +430,9 @@ navItems.forEach((item, idx) => {
     item.classList.add('active');
     updateNavCircle(idx);
 
-    // Delay biar animasi circle halus (UX tetap sama)
+    // Delay biar animasi circle halus
     setTimeout(() => {
-      navigateNoStack(targetPage);
+      navigateNoStack(targetPage); // 🔥 INI YANG PENTING
     }, 220);
   });
 });
@@ -449,35 +448,28 @@ function updateActiveCircle() {
 
 window.addEventListener('resize', updateActiveCircle);
 window.addEventListener('load', updateActiveCircle);
-
-
-/* === GLOBAL BACK BEHAVIOR (FINAL - NO LOOP, APP STYLE) === */
+/* =====================================================
+   🔥 BACK CONTROL PROFIL → LANGSUNG KE INDEX (NO STACK)
+   Nyambung dengan index root lock
+===================================================== */
 (function () {
-  const page = window.location.pathname.split("/").pop() || "index.html";
+  const page = window.location.pathname.split("/").pop();
 
-  // 🔥 PENTING: HANYA kunci history di halaman NON-INDEX
-  if (page !== "index.html") {
-    // Bersihkan history lama lalu set state baru
-    history.replaceState({ page }, "", location.href);
-    history.pushState({ page }, "", location.href);
+  if (page === "profil.html") {
 
-    // Back dari halaman apapun → langsung ke index (tanpa lewat history lama)
+    // Bersihkan history lama
+    history.replaceState(null, "", location.href);
+
+    // Tambah state dummy supaya back bisa ditangkap
+    history.pushState({ profil: true }, "", location.href);
+
     window.addEventListener("popstate", function () {
+
+      // Paksa langsung ke index TANPA history
       window.location.replace("index.html");
+
     });
 
-  } else {
-    // 🔥 KHUSUS INDEX: cegah balik ke halaman lama (pesan, profil, dll)
-    history.replaceState({ page: "index" }, "", location.href);
-
-    window.addEventListener("popstate", function () {
-      // Back di index = keluar app (mode PWA / Android)
-      window.close();
-
-      // Fallback jika browser blok close()
-      setTimeout(() => {
-        history.go(-1);
-      }, 100);
-    });
+    console.log("🔁 Profil locked: Back → Index");
   }
 })();

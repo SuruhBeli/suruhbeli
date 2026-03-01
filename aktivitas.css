@@ -58,21 +58,19 @@ body.dark-mode {
     0 8px 22px rgba(0,0,0,0.35),
     inset 0 2px 6px rgba(255,255,255,0.08);
 }
-.page-wrapper{
-  opacity: 0;
-  transform: scale(1.05);
-  animation: pageZoomOut 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+.page-wrapper {
+  animation: pageZoomOut 0.35s ease forwards;
   transform-origin: center;
 }
 
 @keyframes pageZoomOut{
   0%{
     opacity: 0;
-    transform: scale(1.05);
+    transform: scale(1.05); /* mulai sedikit lebih besar */
   }
   100%{
     opacity: 1;
-    transform: scale(1);
+    transform: scale(1);    /* normal */
   }
 }
 * {

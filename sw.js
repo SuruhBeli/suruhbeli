@@ -1,20 +1,18 @@
-// sw.js - PWA Install Only (No Cache)
+// sw.js - No Cache + Version Control
 
-// Install event (wajib agar PWA bisa install)
+const VERSION = "v2.12.1"; // GANTI SETIAP UPDATE
+
 self.addEventListener("install", (event) => {
-  console.log("SW: Installed");
-  self.skipWaiting(); // langsung aktif tanpa nunggu
+  console.log("SW Installed:", VERSION);
+  self.skipWaiting(); // langsung aktif
 });
 
-// Activate event (wajib untuk lifecycle)
 self.addEventListener("activate", (event) => {
-  console.log("SW: Activated");
-  event.waitUntil(self.clients.claim()); // kontrol semua tab
+  console.log("SW Activated:", VERSION);
+  event.waitUntil(self.clients.claim());
 });
 
-// Fetch event TANPA CACHE
+// Network only (tanpa cache halaman)
 self.addEventListener("fetch", (event) => {
-  // Biarkan semua request langsung ke network
-  // Tidak ada cache sama sekali
-  return;
+  event.respondWith(fetch(event.request));
 });

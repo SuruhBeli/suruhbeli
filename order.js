@@ -396,6 +396,3 @@ window.addEventListener("scroll",()=>{
   const sh = document.getElementById("scrollHeader");
   if(sh) sh.style.opacity=Math.min(scrollY/50,1);
 });
-
-// ===== BACK FUNCTION ===== //
-function goBack(){ window.location.href='index.html'; }

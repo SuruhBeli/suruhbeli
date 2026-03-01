@@ -492,27 +492,27 @@ function updateActiveCircle() {
 window.addEventListener('resize', updateActiveCircle);
 window.addEventListener('load', updateActiveCircle);
 /* =====================================================
-   🔥 BACK CONTROL PROFIL → LANGSUNG KE INDEX (NO STACK)
-   Nyambung dengan index root lock
+   🔥 BACK CONTROL CHATLIST → LANGSUNG KE INDEX
+   - No history stack
+   - No loop
+   - Nyambung dengan index root lock
 ===================================================== */
 (function () {
-  const page = window.location.pathname.split("/").pop();
 
-  if (page === "profil.html") {
+  // 1️⃣ Hapus jejak history sebelumnya
+  history.replaceState({ page: "chatlist" }, "", location.href);
 
-    // Bersihkan history lama
-    history.replaceState(null, "", location.href);
+  // 2️⃣ Tambah dummy state agar tombol back bisa ditangkap
+  history.pushState({ page: "chatlist-lock" }, "", location.href);
 
-    // Tambah state dummy supaya back bisa ditangkap
-    history.pushState({ profil: true }, "", location.href);
+  // 3️⃣ Tangkap tombol BACK (Android / Browser)
+  window.addEventListener("popstate", function () {
 
-    window.addEventListener("popstate", function () {
+    console.log("🔙 Back ditekan di Chatlist → Index");
 
-      // Paksa langsung ke index TANPA history
-      window.location.replace("index.html");
+    // 4️⃣ Paksa ke index TANPA masuk history lagi
+    window.location.replace("index.html");
 
-    });
+  });
 
-    console.log("🔁 Profil locked: Back → Index");
-  }
 })();

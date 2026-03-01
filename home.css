@@ -62,6 +62,39 @@
       0 8px 22px rgba(0,0,0,0.35),
       inset 0 2px 6px rgba(255,255,255,0.08);
   }
+/* =====================================
+   PAGE TRANSITION (SAMA PERSIS PROFIL)
+   SUPER SMOOTH - TIDAK MERUSAK LAYOUT
+===================================== */
+.page-wrapper{
+  opacity: 0;
+  transform: scale(1.04) translateY(6px);
+  transform-origin: center;
+  
+  /* animasi premium (lebih smooth dari ease) */
+  animation: pageZoomOut 0.45s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  
+  /* optimasi mobile & PWA */
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+  contain: layout paint;
+}
+
+/* KEYFRAME HALUS TANPA BOUNCE */
+@keyframes pageZoomOut{
+  0%{
+    opacity: 0;
+    transform: scale(1.04) translateY(6px);
+  }
+  60%{
+    opacity: 1;
+    transform: scale(1.01) translateY(0);
+  }
+  100%{
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
   html, body {
     overflow-x: hidden;
     max-width: 100%;

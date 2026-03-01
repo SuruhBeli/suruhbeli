@@ -518,27 +518,53 @@ function updateActiveCircle() {
 window.addEventListener('resize', updateActiveCircle);
 window.addEventListener('load', updateActiveCircle);
 /* =====================================================
-   🔥 BACK CONTROL PROFIL → LANGSUNG KE INDEX (NO STACK)
-   Nyambung dengan index root lock
+   🔥 BACK CONTROL AKTIVITAS → LANGSUNG KE INDEX (FINAL)
+   - Tidak kembali ke history lama
+   - Tidak loop
+   - Stabil di PWA & Android back button
 ===================================================== */
 (function () {
-  const page = window.location.pathname.split("/").pop();
 
-  if (page === "profil.html") {
+  // 1. Replace state sekarang (hapus jejak sebelumnya)
+  history.replaceState({ page: "aktivitas" }, "", location.href);
 
-    // Bersihkan history lama
-    history.replaceState(null, "", location.href);
+  // 2. Push dummy state untuk menangkap tombol back
+  history.pushState({ page: "aktivitas-lock" }, "", location.href);
 
-    // Tambah state dummy supaya back bisa ditangkap
-    history.pushState({ profil: true }, "", location.href);
+  // 3. Tangkap tombol back (Android / Browser)
+  window.addEventListener("popstate", function () {
 
-    window.addEventListener("popstate", function () {
+    console.log("🔙 Back ditekan di Aktivitas → Redirect ke Index");
 
-      // Paksa langsung ke index TANPA history
-      window.location.replace("index.html");
+    // Pakai replace agar TIDAK masuk history lagi
+    window.location.replace("index.html");
 
-    });
+  });
 
-    console.log("🔁 Profil locked: Back → Index");
-  }
 })();
+
+/* =========================================
+   🎬 TRANSISI MANUAL HALAMAN AKTIVITAS
+========================================= */
+
+// Animasi masuk saat halaman dibuka
+document.addEventListener("DOMContentLoaded", () => {
+  document.body.classList.add("page-enter");
+
+  // Hapus class setelah animasi selesai (biar tidak bentrok)
+  setTimeout(() => {
+    document.body.classList.remove("page-enter");
+  }, 400);
+});
+
+// Fungsi pindah halaman dengan zoom transition
+function goToPage(url){
+  const current = window.location.pathname.split("/").pop() || "index.html";
+  if(current === url) return;
+
+  document.body.classList.add("page-leave");
+
+  setTimeout(() => {
+    window.location.replace(url); // tetap no history stack (app style)
+  }, 280);
+}

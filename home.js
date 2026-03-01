@@ -387,45 +387,41 @@ async function loadInitialCache() {
 }
 
 /* =========================================================
-   🔥 FINAL BACK CONTROL (INDEX ROOT LOCK - NO HISTORY RETURN)
-   Behavior:
-   - Dari halaman lain → index (pakai replace)
-   - Di index → back = keluar app (bukan balik ke pesan/profil)
+   FINAL BACK CONTROL - INDEX (NO BLANK, NO RELOAD)
 ========================================================= */
 (function () {
   const page = window.location.pathname.split("/").pop() || "index.html";
 
-  // ===== KHUSUS HALAMAN INDEX ===== //
   if (page === "index.html" || page === "") {
 
-    // 1. HAPUS semua jejak history sebelumnya (SUPER PENTING)
-    history.replaceState(null, "", "index.html");
+    // Hapus history lama
+    history.replaceState({ root: true }, "", location.href);
 
-    // 2. Tambah state dummy supaya back bisa ditangkap
-    history.pushState({ root: true }, "", "index.html");
+    // Tambah state dummy
+    history.pushState({ root: true }, "", location.href);
 
-    // 3. Tangkap tombol BACK Android / Browser
-    window.addEventListener("popstate", function (e) {
-      // Cegah balik ke halaman lama (pesan, profil, dll)
-      history.pushState({ root: true }, "", "index.html");
+    window.addEventListener("popstate", function () {
 
-      // Coba close app (PWA / WebView Android)
-      if (window.navigator.app) {
+      // Kunci tetap di index (tidak reload)
+      history.pushState({ root: true }, "", location.href);
+
+      // ===== PRIORITAS EXIT APP (Android WebView / Cordova) =====
+      if (window.navigator.app && window.navigator.app.exitApp) {
         window.navigator.app.exitApp();
         return;
       }
 
-      // Fallback close (beberapa browser support)
-      window.close();
+      // ===== PWA MODE (ANDROID CHROME) =====
+      if (window.matchMedia('(display-mode: standalone)').matches) {
+        // Tidak paksa blank!
+        console.log("PWA Mode: Back ditekan (tidak blank)");
+        return;
+      }
 
-      // Fallback terakhir (kalau browser blok close)
-      setTimeout(() => {
-        // Paksa keluar dari history stack
-        location.href = "about:blank";
-      }, 50);
+      // ===== BROWSER BIASA =====
+      console.log("Back ditekan di index (history locked)");
     });
 
-    console.log("🔒 Index locked: Back = Exit App");
-
+    console.log("🔒 Index Locked - No Blank Page");
   }
 })();

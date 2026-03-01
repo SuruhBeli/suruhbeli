@@ -1,18 +1,31 @@
-// sw.js - No Cache + Version Control
+// ===== SURUHBELI PWA SERVICE WORKER (PWA VALID, NO PAGE CACHE) ===== //
 
-const VERSION = "v2.12.1"; // GANTI SETIAP UPDATE
+const APP_VERSION = "1.0.0";
 
+// Install (wajib untuk PWA)
 self.addEventListener("install", (event) => {
-  console.log("SW Installed:", VERSION);
-  self.skipWaiting(); // langsung aktif
+  console.log("SW Installed v" + APP_VERSION);
+  self.skipWaiting();
 });
 
+// Activate (ambil kontrol semua tab)
 self.addEventListener("activate", (event) => {
-  console.log("SW Activated:", VERSION);
+  console.log("SW Activated");
   event.waitUntil(self.clients.claim());
 });
 
-// Network only (tanpa cache halaman)
+// Fetch handler (NETWORK FIRST, TANPA CACHE HALAMAN)
 self.addEventListener("fetch", (event) => {
-  event.respondWith(fetch(event.request));
+  // Hanya handle request GET
+  if (event.request.method !== "GET") return;
+
+  event.respondWith(
+    fetch(event.request).catch(() => {
+      // Optional fallback kalau offline
+      return new Response("Offline", {
+        status: 503,
+        statusText: "Offline Mode"
+      });
+    })
+  );
 });

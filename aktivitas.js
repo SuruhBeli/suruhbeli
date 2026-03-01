@@ -542,29 +542,3 @@ window.addEventListener('load', updateActiveCircle);
   });
 
 })();
-
-/* =========================================
-   🎬 TRANSISI MANUAL HALAMAN AKTIVITAS
-========================================= */
-
-// Animasi masuk saat halaman dibuka
-document.addEventListener("DOMContentLoaded", () => {
-  document.body.classList.add("page-enter");
-
-  // Hapus class setelah animasi selesai (biar tidak bentrok)
-  setTimeout(() => {
-    document.body.classList.remove("page-enter");
-  }, 400);
-});
-
-// Fungsi pindah halaman dengan zoom transition
-function goToPage(url){
-  const current = window.location.pathname.split("/").pop() || "index.html";
-  if(current === url) return;
-
-  document.body.classList.add("page-leave");
-
-  setTimeout(() => {
-    window.location.replace(url); // tetap no history stack (app style)
-  }, 280);
-}

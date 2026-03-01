@@ -1,0 +1,517 @@
+:root{
+  /* ===== LIGHT MODE (DEFAULT SEKARANG) ===== */
+  --bg-main:#FFF7ED;
+  --text-main:#7C2D12;
+  --card-bg:#ffffff;
+  --border-soft:#FED7AA;
+  --text-secondary:#374151;
+  --text-muted:#6B7280;
+  --accent:#FB923C;
+  --active-bg:#FFF1E6;
+  --navbar-bg: #FFF7ED;
+  --navbar-text: #6B7280;
+  --navbar-active-bg: #FB923C;
+  --navbar-active-text: #FB923C;
+  --navbar-border-radius: 35px;
+  --navbar-shadow: 0 8px 20px rgba(0,0,0,0.15);
+  --navbar-glass-bg: rgba(255,255,255,0.55);
+  --navbar-glass-border: 1px solid rgba(255,255,255,0.35);
+  --navbar-glass-blur: blur(14px);
+  --nav-circle-shadow: none;
+}
+
+/* ===== DARK MODE GLOBAL ===== */
+body.dark-mode{
+  --bg-main:#0F172A;
+  --text-main:#F8FAFC;
+  --card-bg:#1E293B;
+  --border-soft:#334155;
+  --text-secondary:#E2E8F0;
+  --text-muted:#94A3B8;
+  --accent:#FB923C;
+  --active-bg:#1E293B;
+  --navbar-bg: rgba(30,41,59,0.85);
+  --navbar-text: #94A3B8;
+  --navbar-active-bg: #FB923C;
+  --navbar-active-text: #FB923C;
+  --navbar-shadow: 0 10px 30px rgba(0,0,0,0.45);
+  --navbar-glass-bg: rgba(15,23,42,0.65);
+  --navbar-glass-border: 1px solid rgba(148,163,184,0.15);
+  --navbar-glass-blur: blur(16px);
+  --nav-circle-shadow:
+    0 8px 22px rgba(0,0,0,0.35),
+    inset 0 2px 6px rgba(255,255,255,0.08);
+}
+/* ===== PAGE ZOOM OUT ANIMATION (MULUS, TANPA BOUNCE) ===== */
+.page-wrapper {
+  animation: pageZoomOut 0.35s ease forwards;
+  transform-origin: center;
+}
+
+@keyframes pageZoomOut{
+  0%{
+    opacity: 0;
+    transform: scale(1.05); /* mulai sedikit lebih besar */
+  }
+  100%{
+    opacity: 1;
+    transform: scale(1);    /* normal */
+  }
+}
+body{
+  background:var(--bg-main);
+  color:var(--text-main);
+  min-height:100vh;
+  transition:background 0.3s ease, color 0.3s ease;
+  padding-bottom: 50px;
+}
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+  font-family:'Nunito',sans-serif;
+  -webkit-tap-highlight-color: transparent;
+  user-select:none;
+  -webkit-user-select:none;
+  outline:none;
+}
+
+/* ===== HERO HEADER DINAMIS ===== */
+.hero-profile{
+  width:100%;
+  height:240px; /* 🔥 sudah dilebarkan ke bawah */
+  background:#FB923C;
+  position:relative;
+  overflow:hidden;
+}
+
+.hero-profile img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  display:block;
+}
+
+/* Overlay biar teks/card tetap kebaca */
+.hero-overlay{
+  position:absolute;
+  inset:0;
+  background:linear-gradient(to bottom, rgba(0,0,0,0.1), rgba(0,0,0,0.25));
+}
+
+/* ===== FLOATING PROFILE CARD ===== */
+.profile-card{
+  position:relative;
+  margin:-70px 16px 0 16px;
+  background:var(--card-bg);
+  border-radius:22px;
+  padding:14px 16px; /* 🔥 dari 18px → 14px (lebih padat) */
+  display:flex;
+  align-items:center;
+  gap:12px; /* 🔥 dari 16px → 12px */
+
+  box-shadow:0 16px 40px rgba(0,0,0,0.15);
+  border:1px solid var(--border-soft);
+  z-index:5;
+}
+
+/* ===== AVATAR (INISIAL) ===== */
+.profile-avatar{
+  width:70px;
+  height:70px;
+  border-radius:50%;
+  background:#FB923C;
+  color:white;
+  font-size:28px;
+  font-weight:800;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  flex-shrink:0;
+}
+
+/* ===== INFO USER (JARAK BARIS DIRAPATKAN) ===== */
+.profile-info{
+  display:flex;
+  flex-direction:column;
+  gap:2px; /* 🔥 dari 6px → 2px (ini yang paling ngaruh) */
+  overflow:hidden;
+  line-height:1.2; /* 🔥 bikin teks lebih rapat */
+}
+
+.profile-name{
+  font-size:20px; /* sedikit diperkecil biar proporsional */
+  font-weight:800;
+  color:var(--text-main);
+  margin-bottom:1px; /* kontrol jarak bawah nama */
+}
+
+.profile-email{
+  font-size:15px; /* dari 14px */
+  color:var(--text-secondary);
+  word-break:break-all;
+  margin:0;
+}
+
+.profile-phone{
+  font-size:13px; /* dari 15px */
+  font-weight:600;
+  color:var(--text-secondary);
+  margin-top:1px; /* jarak halus saja */
+}
+
+/* Spacing konten bawah (nanti untuk menu pengaturan) */
+.content{
+  padding:24px 16px;
+}
+/* ===== CARD PENGATURAN ===== */
+.settings-card{
+  background:var(--card-bg);
+  border:1px solid var(--border-soft);
+  border-radius:20px;
+  padding:16px;
+  box-shadow:0 10px 25px rgba(0,0,0,0.08);
+}
+
+.settings-title{
+  font-weight:800;
+  font-size:16px;
+  margin-bottom:12px;
+  color:var(--text-main);
+}
+
+.settings-item{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:18px 16px; /* 🔥 lebih tinggi = lebih enak di tap */
+  border-radius:16px;
+  cursor:pointer;
+  transition:0.2s ease;
+  border-bottom:1px solid var(--border-soft);
+}
+/* Garis terakhir tidak ada*/
+.settings-item:last-child{
+  border-bottom:none;
+}
+.settings-item:active{
+  background:var(--bg-main);
+  transform:scale(0.98); /* efek ditekan kayak app */
+  border-bottom:1px solid #F1F5F9;
+}
+
+.settings-left{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  font-weight:800;
+  font-size:15px;
+  color:var(--text-secondary);
+  letter-spacing:0.2px;
+}
+/*SVG DAN IKON PANAH*/
+.settings-left svg{
+  flex-shrink:0;
+  width:22px;
+  height:22px;
+  color: var(--accent);
+}
+/* ===== POPUP OVERLAY ===== */
+.popup-overlay{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,0.45);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  z-index:999;
+  padding:16px;
+}
+
+.popup-overlay.show{
+  display:flex;
+}
+
+/* ===== POPUP EDIT ===== */
+.popup-card{
+  width:100%;
+  max-width:380px;
+  background:var(--card-bg);
+  border-radius:22px;
+  padding:22px 18px;
+  text-align:center;
+  animation:scaleIn 0.2s ease;
+}
+
+@keyframes scaleIn{
+  from{transform:scale(0.9); opacity:0;}
+  to{transform:scale(1); opacity:1;}
+}
+
+.popup-header{
+  font-size:20px;
+  font-weight:800;
+  margin-bottom:16px;
+  color:var(--text-main);
+}
+
+.edit-avatar-preview{
+  width:90px;
+  height:90px;
+  border-radius:50%;
+  background:#FB923C;
+  color:white;
+  font-size:34px;
+  font-weight:800;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  margin:0 auto 12px auto;
+  overflow:hidden;
+}
+
+.edit-avatar-preview img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+}
+
+/* Button Upload */
+.btn-upload{
+  background:#FFF7ED;
+  border:1px solid #FED7AA;
+  padding:10px 16px;
+  border-radius:12px;
+  font-weight:600;
+  margin-bottom:14px;
+}
+
+/* Input */
+.input-field{
+  width:100%;
+  padding:12px;
+  border-radius:12px;
+  border:1px solid var(--card-bg);
+  margin-bottom:12px;
+  font-size:14px;
+  outline:none;
+}
+
+.input-field:focus{
+  border-color:#FB923C;
+}
+
+/* Button Save */
+.btn-save{
+  width:100%;
+  padding:14px;
+  border:none;
+  border-radius:14px;
+  background:#FB923C;
+  color:white;
+  font-weight:800;
+  font-size:16px;
+}
+
+/* ===== CONFIRM POPUP ===== */
+.confirm-card{
+  position:relative; /* 🔥 KUNCI supaya img bisa keluar */
+  background:var(--card-bg);
+  border-radius:20px;
+  padding:22px 18px;
+  display:flex;
+  align-items:center;
+  max-width:360px;
+  overflow:visible; /* 🔥 biar gambar bisa keluar frame */
+}
+
+.confirm-text{
+  flex:1;
+  font-weight:700;
+  padding-right:80px; /*kasih ruang buat alert.png*/
+  color:var(--text-secondary);
+}
+
+.alert-img{
+  position:absolute;
+  right:-35px;        /* 🔥 keluar sedikit ke kanan */
+  top:-10px;          /* 🔥 kejar batas atas */
+  bottom:-10px;       /* 🔥 kejar batas bawah */
+  height:calc(100% + 20px); /* 🔥 lebih tinggi dari card */
+  width:auto;         /* jaga rasio */
+  max-width:140px;    /* batas biar tidak terlalu besar */
+  object-fit:contain;
+  pointer-events:none; /* biar tombol tetap bisa diklik */
+}
+
+.confirm-actions{
+  margin-top:12px;
+  display:flex;
+  gap:8px;
+}
+
+.btn-cancel{
+  flex:1;
+  padding:10px;
+  border-radius:10px;
+  border:1px solid #E5E7EB;
+  background:white;
+  font-weight:700;
+}
+
+.btn-ok{
+  flex:1;
+  padding:10px;
+  border-radius:10px;
+  border:none;
+  background:#FB923C;
+  color:white;
+  font-weight:800;
+}
+#btnLogout .settings-left span{
+  color:#DC2626;
+}
+/* ===== FOOTER APP VERSION ===== */
+.app-footer{
+  text-align: center;
+  font-size: 12px;
+  color: var(--text-secondary); /* abu halus */
+  padding: 2px 16px 50px;
+  opacity: 0.9;
+  letter-spacing: 0.3px;
+}
+
+/* Dark mode auto ikut */
+body.dark .app-footer{
+  color: #6B7280;
+}
+/* NAVBAR */
+.navbar-bottom {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 90%;
+  max-width: 450px;
+  height: 70px;
+
+  background: var(--navbar-bg);
+  border-radius: var(--navbar-border-radius);
+  box-shadow: var(--navbar-shadow);
+
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  z-index: 100;
+  transition: all 0.35s ease;
+}
+/* ===============================
+   MODE GEMPA / TRUE GLASSMORPHISM
+   =============================== */
+.navbar-bottom.gempa-mode{
+  background: var(--navbar-glass-bg);
+  backdrop-filter: blur(18px) saturate(140%);
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
+  border: var(--navbar-glass-border);
+
+  /* Shadow glass (lebih premium, tidak berat) */
+  box-shadow:
+    0 10px 30px rgba(0,0,0,0.25),
+    inset 0 1px 0 rgba(255,255,255,0.15);
+}
+
+/* Highlight tipis biar efek glass lebih hidup */
+.navbar-bottom.gempa-mode::before{
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 12%;
+  width: 76%;
+  height: 1px;
+  background: linear-gradient(
+    to right,
+    transparent,
+    rgba(255,255,255,0.35),
+    transparent
+  );
+  pointer-events: none;
+}
+
+/* ===============================
+   NAV ITEM
+   =============================== */
+.nav-item {
+  position: relative;
+  flex: 1;
+  text-align: center;
+  cursor: pointer;
+  color: var(--navbar-text);
+  z-index: 2; /* di atas circle */
+  transition: transform 0.2s ease;
+}
+
+/* Tap effect (mobile friendly hover) */
+.nav-item:active{
+  transform: scale(0.95);
+}
+
+/* ===============================
+   ICON SVG
+   =============================== */
+.nav-item svg {
+  width: 28px;
+  height: 28px;
+  fill: none;
+  stroke: var(--navbar-text);
+  stroke-width: 1.3;
+  transition: 
+    transform 0.4s cubic-bezier(.68,-0.55,.27,1.55),
+    stroke 0.3s ease;
+}
+
+.nav-item.active svg {
+  stroke: var(--navbar-active-text);
+  transform: translateY(-15px) scale(1.25);
+}
+
+/* ===============================
+   TEXT LABEL (FIX BUG WARNA)
+   =============================== */
+.nav-item span {
+  display: block;
+  margin-top: 1px;
+  font-size: 15px;
+  font-weight: 700;
+  transition: transform 0.3s ease, color 0.3s ease;
+
+  /* 🔥 FIX: default harus text biasa, bukan aktif */
+  color: var(--navbar-text);
+}
+
+.nav-item.active span {
+  transform: translateY(-5px);
+  color: var(--navbar-active-text);
+}
+
+/* ===============================
+   ACTIVE BACKGROUND CIRCLE (SMOOTH)
+   =============================== */
+.nav-active-circle {
+  position: absolute;
+  top: -22px;
+  width: 62px;
+  height: 62px;
+
+  background: var(--border-soft);
+  border-radius: 50%;
+
+  /* pakai variable biar dinamis */
+  box-shadow: var(--nav-circle-shadow);
+
+  transition:
+    left 0.45s cubic-bezier(.68,-0.55,.27,1.55),
+    transform 0.3s ease;
+
+  z-index: 1;
+  pointer-events: none;
+}

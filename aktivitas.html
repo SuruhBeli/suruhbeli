@@ -9,21 +9,15 @@
   <link rel="stylesheet" href="aktivitas.css">
 <title>SuruhBeli - Aktivitas</title>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
-
-<!-- Firebase -->
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-
 </head>
 <body>
 
-<div class="scroll-header">Aktivitas Pesanan</div>
+<div class="scroll-header">Pesanan</div>
 
 <div class="container">
   <div class="tabs">
-    <div class="tab active" data-tab="aktif">Pesanan Aktif</div>
-    <div class="tab" data-tab="diproses">Diproses</div>
+    <div class="tab active" data-tab="aktif">Dibuat</div>
+    <div class="tab" data-tab="diproses">Aktif</div>
     <div class="tab" data-tab="riwayat">Riwayat</div>
   </div>
 
@@ -37,6 +31,32 @@
     <button class="close-btn" onclick="closePopup()">Tutup</button>
   </div>
 </div>
+
+<!-- POPUP EDIT -->
+<div id="popupEdit" class="popup-overlay">
+  <div class="edit-card">
+
+    <div class="edit-header">
+      <div class="edit-title">✏️ Edit Pesanan</div>
+      <div class="edit-close" onclick="closeEditPopup()">✕</div>
+    </div>
+
+    <div class="edit-body">
+      <label class="edit-label">Pesanan</label>
+      <textarea id="editPesanan" class="edit-input" placeholder="Tulis pesanan..."></textarea>
+
+      <label class="edit-label">Catatan</label>
+      <textarea id="editCatatan" class="edit-input" placeholder="Tambahkan catatan (opsional)"></textarea>
+    </div>
+
+    <div class="edit-actions">
+      <button onclick="closeEditPopup()" class="btn-cancel">Batal</button>
+      <button onclick="saveEditOrder()" class="btn-save">Simpan</button>
+    </div>
+
+  </div>
+</div>
+
 <!-- POPUP ALERT CUSTOM -->
 <div id="popupAlert" class="popup-overlay">
   <div class="confirm-card">
@@ -85,7 +105,13 @@
 
     <span>Pesanan</span>
   </div>
-  <div class="nav-item" data-index="2" data-href="profil.html">
+  <div class="nav-item" data-index="2" data-href="chatlist.html">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-6">
+        <path fill-rule="evenodd" d="M4.848 2.771A49.144 49.144 0 0 1 12 2.25c2.43 0 4.817.178 7.152.52 1.978.292 3.348 2.024 3.348 3.97v6.02c0 1.946-1.37 3.678-3.348 3.97a48.901 48.901 0 0 1-3.476.383.39.39 0 0 0-.297.17l-2.755 4.133a.75.75 0 0 1-1.248 0l-2.755-4.133a.39.39 0 0 0-.297-.17 48.9 48.9 0 0 1-3.476-.384c-1.978-.29-3.348-2.024-3.348-3.97V6.741c0-1.946 1.37-3.68 3.348-3.97ZM6.75 8.25a.75.75 0 0 1 .75-.75h9a.75.75 0 0 1 0 1.5h-9a.75.75 0 0 1-.75-.75Zm.75 2.25a.75.75 0 0 0 0 1.5H12a.75.75 0 0 0 0-1.5H7.5Z" clip-rule="evenodd" />
+      </svg>
+    <span>Chat</span>
+  </div>
+  <div class="nav-item" data-index="3" data-href="profil.html">
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-6">
       <path fill-rule="evenodd" d="M18.685 19.097A9.723 9.723 0 0 0 21.75 12c0-5.385-4.365-9.75-9.75-9.75S2.25 6.615 2.25 12a9.723 9.723 0 0 0 3.065 7.097A9.716 9.716 0 0 0 12 21.75a9.716 9.716 0 0 0 6.685-2.653Zm-12.54-1.285A7.486 7.486 0 0 1 12 15a7.486 7.486 0 0 1 5.855 2.812A8.224 8.224 0 0 1 12 20.25a8.224 8.224 0 0 1-5.855-2.438ZM15.75 9a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0Z" clip-rule="evenodd" />
     </svg>
@@ -93,356 +119,18 @@
     <span>Profil</span>
   </div>
 </div>
-<script>
-firebase.initializeApp({
-  apiKey: "AIzaSyByQl0BXZoSMzrULUNA6l7UVFQjXmvsdJE",
-  authDomain: "suruhbeli-e8ae8.firebaseapp.com",
-  projectId: "suruhbeli-e8ae8"
-});
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 
-const auth = firebase.auth();
-const db = firebase.firestore();
-let currentUser = null;
-let activeTab = 'aktif';
+<!-- INIT -->
+<script src="firebase-init.js"></script>
 
-auth.onAuthStateChanged(async (user)=>{
-  if(user){
-    currentUser = user;
-    loadOrders();
-  }else{
-    window.location.href = "index.html";
-  }
-});
-
-document.querySelectorAll('.tab').forEach(tab=>{
-  tab.addEventListener('click', ()=>{
-    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
-    tab.classList.add('active');
-    activeTab = tab.dataset.tab;
-    loadOrders();
-  });
-});
-
-async function loadOrders(){
-  if(!currentUser) return;
-  const container = document.getElementById('ordersContainer');
-  container.innerHTML = 'Memuat pesanan...';
-
-  try{
-    const snapshot = await db.collection("orders")
-      .where("userId","==",currentUser.uid)
-      .get();
-
-    const orders = snapshot.docs.map(doc=>{
-      const data = doc.data();
-      return {
-        id: doc.id,
-        ...data,
-        createdAt: data.createdAt?.toDate ? data.createdAt.toDate() : new Date(0)
-      };
-    });
-
-    orders.sort((a,b)=>b.createdAt - a.createdAt);
-
-    const filtered = orders.filter(o => {
-      if(activeTab === 'aktif') return o.status === 'Dibuat';
-      if(activeTab === 'diproses') return o.status === 'Diproses';
-      // riwayat
-      return o.status === 'Selesai' || o.status === 'Dibatalkan';
-    });
-
-    if(filtered.length===0){
-      container.innerHTML = "<p>Tidak ada pesanan.</p>";
-      return;
-    }
-
-    container.innerHTML = '';
-filtered.forEach(order=>{
-  let statusClass = '';
-  switch(order.status){
-    case 'Dibuat': statusClass = 'proses'; break;
-    case 'Diproses': statusClass = 'diproses'; break;
-    case 'Selesai': statusClass = 'selesai'; break;
-    case 'Dibatalkan': statusClass = 'gagal'; break;
-    default: statusClass = 'proses';
-  }
-
-  const card = document.createElement('div');
-  card.className = 'order-card';
-  const createdTime = order.createdAt.getTime();
-  const now = new Date().getTime();
-  const canCancel = order.status === 'Dibuat' && (now - createdTime < 10 * 60 * 1000);
-
-  // Tombol Batalkan hanya untuk status Dibuat
-  const cancelButton = canCancel ? `<button onclick="confirmCancel('${order.id}')">Batalkan</button>` : '';
-
-  // Tombol Chat Driver hanya untuk status Diproses
-  const chatButton = order.status === 'Diproses' && order.kurir ? `
-    <button onclick="chatDriver('${order.kurir}', '${order.id}')">Chat Driver</button>
-  ` : '';
-
-  card.innerHTML = `
-    <div><b>${order.layanan || '-'}</b></div>
-    <div>Pesanan: ${order.pesanan || '-'}</div>
-    <div>Ongkir: Rp ${order.ongkir?.toLocaleString('id-ID') || '-'}</div>
-    <div class="status ${statusClass}">${order.status}</div>
-    <div style="font-size:12px;">${order.createdAt.toLocaleString("id-ID")}</div>
-    <button onclick="showDetail('${order.id}')">Detail</button>
-    ${cancelButton}
-    ${chatButton}
-  `;
-
-  container.appendChild(card);
-});
-
-  }catch(e){
-    container.innerHTML = "<p>Gagal memuat pesanan.</p>";
-    console.log(e);
-  }
-}
-
-async function chatDriver(kurirUid, orderId){
-  if(!currentUser) return;
-
-  const roomsRef = db.collection('chatRooms');
-  let roomId = null;
-
-  // Cari room yang sudah ada antara user dan kurir
-  const snapshot = await roomsRef
-    .where(`participants.${currentUser.uid}`, '==', true)
-    .where(`participants.${kurirUid}`, '==', true)
-    .get();
-
-  if(!snapshot.empty){
-    roomId = snapshot.docs[0].id; // pakai room pertama yang ketemu
-  } else {
-    // buat room baru
-    const newRoom = await roomsRef.add({
-      participants: {
-        [currentUser.uid]: true,
-        [kurirUid]: true
-      },
-      createdAt: firebase.firestore.FieldValue.serverTimestamp()
-    });
-    roomId = newRoom.id;
-  }
-
-  // redirect ke chat
-  window.location.href = `chat.html?roomId=${roomId}`;
-}
-
-function getStatusBadge(status){
-  if(status==='Selesai') return `<span class="status-badge badge-selesai">SELESAI</span>`;
-  if(status==='Dibatalkan') return `<span class="status-badge badge-gagal">DIBATALKAN</span>`;
-  return `<span class="status-badge badge-proses">${status || 'PROSES'}</span>`;
-}
-
-function showDetail(orderId){
-  const popup = document.getElementById('popupDetail');
-  const popupContent = document.getElementById('popupContent');
-
-  // Popup langsung muncul (no delay)
-  popupContent.innerHTML = 'Memuat struk...';
-  popup.classList.add('show');
-
-  db.collection("orders").doc(orderId).get()
-    .then(doc=>{
-      if(!doc.exists) return;
-      const data = doc.data();
-      const createdAt = data.createdAt?.toDate ? data.createdAt.toDate() : new Date(0);
-
-      popupContent.innerHTML = `
-        <div class="receipt-header">
-          <img src="logo.png" class="receipt-logo">
-          <div class="receipt-title">SuruhBeli</div>
-          <div class="receipt-sub">Struk Pesanan Digital</div>
-        </div>
-
-        <div class="row">
-          <span class="label">ID Pesanan</span>
-          <span class="value">#${doc.id.slice(0,6)}</span>
-        </div>
-
-        <div class="row">
-          <span class="label">Waktu</span>
-          <span class="value">${createdAt.toLocaleString("id-ID")}</span>
-        </div>
-
-        <div class="dash"></div>
-
-        <div class="row">
-          <span class="label">Layanan</span>
-          <span class="value">${data.layanan || '-'}</span>
-        </div>
-
-        <div class="row">
-          <span class="label">Pesanan</span>
-          <span class="value">${data.pesanan || '-'}</span>
-        </div>
-
-        <div class="row">
-          <span class="label">Beli di</span>
-          <span class="value">${data.beliDi || '-'}</span>
-        </div>
-
-        <div class="row">
-          <span class="label">Catatan</span>
-          <span class="value">${data.catatan || '-'}</span>
-        </div>
-
-        <div class="dash"></div>
-
-        <div class="row">
-          <span class="label">Ongkir</span>
-          <span class="value">Rp ${data.ongkir?.toLocaleString('id-ID') || '0'}</span>
-        </div>
-
-        <div class="row">
-          <span class="label">Status</span>
-          <span class="value">${getStatusBadge(data.status)}</span>
-        </div>
-
-        <div class="dash"></div>
-
-        <div class="receipt-footer">
-          Terima kasih telah menggunakan SuruhBeli
-        </div>
-      `;
-    })
-    .catch(err=>{
-      popupContent.innerHTML = 'Gagal memuat struk.';
-      console.log(err);
-    });
-}
-
-function closePopup(){
-  document.getElementById('popupDetail').classList.remove('show');
-}
-function showCustomPopup(message, isConfirm = false){
-  return new Promise((resolve)=>{
-    const popup = document.getElementById("popupAlert");
-    const msg = document.getElementById("popupAlertMessage");
-    const sub = document.getElementById("popupAlertSub");
-    const btnOk = document.getElementById("popupOk");
-    const btnCancel = document.getElementById("popupCancel");
-
-    msg.textContent = message;
-
-    if(isConfirm){
-      sub.textContent = "Tindakan ini tidak bisa dibatalkan";
-      btnCancel.style.display = "block";
-    }else{
-      sub.textContent = "";
-      btnCancel.style.display = "none";
-    }
-
-    popup.classList.add("show");
-
-    function close(result){
-      popup.classList.remove("show");
-      btnOk.onclick = null;
-      btnCancel.onclick = null;
-      resolve(result);
-    }
-
-    btnOk.onclick = ()=> close(true);
-    btnCancel.onclick = ()=> close(false);
-  });
-}
-// ---------- TAMBAHKAN DI SINI ----------
-async function confirmCancel(orderId) {
-  const yakin = await showCustomPopup(
-    "Yakin ingin membatalkan pesanan?",
-    true // ini mode confirm (ada tombol batal)
-  );
-
-  if (!yakin) return;
-
-  try{
-    await db.collection("orders").doc(orderId).update({
-      status: "Dibatalkan"
-    });
-
-    await showCustomPopup("Pesanan berhasil dibatalkan!");
-    loadOrders();
-
-  }catch(err){
-    console.log(err);
-    await showCustomPopup("Gagal membatalkan pesanan!");
-  }
-}
-
-//SINKRON TEMA 
-function loadTheme(){
-  const savedTheme = localStorage.getItem("themeMode");
-  if(savedTheme === "dark"){
-    document.body.classList.add("dark-mode");
-  }else{
-    document.body.classList.remove("dark-mode");
-  }
-}
-
-// Jalankan saat halaman selesai load
-window.addEventListener("load", loadTheme);
-
-/* === NAVBAR BAWAH === */
-const navItems = document.querySelectorAll('.nav-item');
-const navCircle = document.getElementById('navCircle');
-document.querySelector('.navbar-bottom')
-  .classList.toggle('gempa-mode');
-  
-function updateNavCircle(activeIndex) {
-  const activeItem = navItems[activeIndex];
-  if (!activeItem || !navCircle) return;
-
-  // Hitung posisi center ikon relatif ke navbar
-  const navbarRect = activeItem.parentElement.getBoundingClientRect();
-  const icon = activeItem.querySelector('svg');
-  const iconRect = icon.getBoundingClientRect();
-
-  const centerX = iconRect.left + iconRect.width / 2 - navbarRect.left;
-
-  navCircle.style.left = `${centerX - navCircle.offsetWidth / 2}px`;
-  navCircle.style.transform = 'scale(1.15)';
-
-  setTimeout(() => {
-    navCircle.style.transform = 'scale(1)';
-  }, 200);
-}
-
-// Inisialisasi tab aktif sesuai URL
-let currentPage = window.location.pathname.split("/").pop() || 'index.html';
-navItems.forEach((item, idx) => {
-  if (item.dataset.href === currentPage) {
-    item.classList.add('active');
-    updateNavCircle(idx);
-  }
-
-  // Event klik
-  item.addEventListener('click', (e) => {
-    e.preventDefault();
-    navItems.forEach(i => i.classList.remove('active'));
-    item.classList.add('active');
-    updateNavCircle(idx);
-
-    setTimeout(() => {
-      window.location.href = item.dataset.href;
-    }, 250); // animasi bulatan selesai dulu
-  });
-});
-
-// Update posisi saat resize / load
-function updateActiveCircle() {
-  const active = document.querySelector('.nav-item.active');
-  if (active) {
-    const idx = Array.from(navItems).indexOf(active);
-    updateNavCircle(idx);
-  }
-}
-
-window.addEventListener('resize', updateActiveCircle);
-window.addEventListener('load', updateActiveCircle);
-</script>
+<!-- CORE & BOOTSTRAP -->
+<script src="app-core.js"></script>
+<script src="app-bootstrap.js"></script>
+<script src="aktivitas.js"></script>
 
 </body>
 </html>

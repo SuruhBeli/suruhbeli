@@ -1,4 +1,21 @@
 :root {
+  --bg-main: #FFF7ED;
+  --text-main: #7C2D12;
+  --card-bg: #ffffff;
+  --border-soft: #FED7AA;
+  --text-secondary: #374151;
+  --text-muted: #6B7280;
+  --accent: #FB923C;
+  --active-tab: #FEEBC8;
+  --diproses: #60A5FA;
+  --success: #10B981;
+  --error: #EF4444;
+  --badge-proses: #C2410C;
+  --badge-selesai: #065F46;
+  --badge-gagal: #991B1B;
+  --dash: #D1D5DB;
+  --line: #E5E7EB;
+  --receipt-text: #2D2D2D;
   --navbar-bg: #FFF7ED;
   --navbar-text: #6B7280;
   --navbar-active-bg: #FB923C;
@@ -7,7 +24,39 @@
   --navbar-shadow: 0 8px 20px rgba(0,0,0,0.15);
   --navbar-glass-bg: rgba(255,255,255,0.55);
   --navbar-glass-border: 1px solid rgba(255,255,255,0.35);
+  --navbar-glass-blur: blur(14px);
   --nav-circle-shadow: none;
+}
+
+body.dark-mode {
+  --bg-main: #0F172A;
+  --text-main: #F8FAFC;
+  --card-bg: #1E293B;
+  --border-soft: #334155;
+  --text-secondary: #E2E8F0;
+  --text-muted: #94A3B8;
+  --accent: #FB923C;
+  --active-tab: #1E293B;
+  --diproses: #60A5FA;
+  --success: #10B981;
+  --error: #EF4444;
+  --badge-proses: #F97316;
+  --badge-selesai: #22C55E;
+  --badge-gagal: #EF4444;
+  --dash: #475569;
+  --line: #334155;
+  --receipt-text: #F8FAFC;
+  --navbar-bg: rgba(30,41,59,0.85);
+  --navbar-text: #94A3B8;
+  --navbar-active-bg: #FB923C;
+  --navbar-active-text: #FB923C;
+  --navbar-shadow: 0 10px 30px rgba(0,0,0,0.45);
+  --navbar-glass-bg: rgba(15,23,42,0.65);
+  --navbar-glass-border: 1px solid rgba(148,163,184,0.15);
+  --navbar-glass-blur: blur(16px);
+  --nav-circle-shadow:
+    0 8px 22px rgba(0,0,0,0.35),
+    inset 0 2px 6px rgba(255,255,255,0.08);
 }
 
 * {
@@ -21,7 +70,7 @@
 
 body {
   font-family: Nunito, sans-serif;
-  background: #f2f2f2;
+  background: var(--bg-main);
   -webkit-tap-highlight-color: transparent;
 }
 
@@ -40,10 +89,9 @@ body {
   background: #FB923C;
   color: white;
   font-weight: bold;
-  text-align: center;
-  font-size: 1.4em;
+  text-align: left;
+  font-size: 1.5em;
   z-index: 1000;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
   border-bottom-left-radius: 20px;
   border-bottom-right-radius: 20px;
 }
@@ -56,23 +104,47 @@ body {
 }
 
 .chat-item {
+  position: relative;
+  overflow: hidden; /* WAJIB untuk ripple */
   display: flex;
   align-items: center;
-  padding: 12px;
-  background: white;
-  border-radius: 15px;
+  padding: 14px 12px;
+  background: var(--bg-main);
+  border-radius: 18px;
   cursor: pointer;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition: background 0.25s ease, transform 0.12s ease;
   word-break: break-word;
 }
 
-.chat-item:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-  background: #ffe5d6;
+/* Tap Effect (soft press like WA) */
+.chat-item:active {
+  transform: scale(0.98);
+}
+/* ===== RIPPLE EFFECT ===== */
+.chat-item::after {
+  content: "";
+  position: absolute;
+  border-radius: 50%;
+  transform: scale(0);
+  background: rgba(0, 0, 0, 0.08);
+  pointer-events: none;
+  opacity: 0;
 }
 
+.chat-item.ripple::after {
+  animation: rippleEffect 0.5s ease-out;
+}
+
+@keyframes rippleEffect {
+  0% {
+    transform: scale(0);
+    opacity: 0.3;
+  }
+  100% {
+    transform: scale(8);
+    opacity: 0;
+  }
+}
 .chat-photo {
   width: 52px;
   height: 52px;
@@ -104,8 +176,8 @@ body {
 
 .chat-name {
   font-weight: 700;
-  font-size: 1em;
-  color: #333;
+  font-size: 1.1em;
+  color: var(--text-main);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -114,13 +186,13 @@ body {
 
 .chat-time {
   font-size: 0.75em;
-  color: #9CA3AF;
+  color: var(--text-muted);
   flex-shrink: 0;
   margin-left: 8px;
 }
 
 .chat-last-message {
-  font-size: 0.85em;
+  font-size: 1em;
   color: #6B7280;
   margin-top: 3px;
   overflow: hidden;
@@ -335,3 +407,283 @@ body {
   z-index: 1;
   pointer-events: none;
 }
+
+/* ===== EMPTY CHAT STATE ===== */
+.empty-state {
+  display: none; /* ubah dari flex jadi none */
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 70vh;
+  text-align: center;
+  padding: 20px;
+  opacity: 0.9;
+}
+
+.empty-title {
+  font-size: 1.2em;
+  font-weight: 700;
+  color: #374151;
+  margin-top: 10px;
+}
+
+.empty-desc {
+  font-size: 0.9em;
+  color: #9CA3AF;
+  margin-top: 6px;
+  max-width: 260px;
+  line-height: 1.5;
+}
+
+.empty-state lottie-player {
+  width: 180px;
+  height: 180px;
+  margin-bottom: 10px;
+  opacity: 0.95;
+}
+
+.empty-state h3 {
+  font-size: 1.2em;
+  font-weight: 800;
+  color: #374151;
+  margin-bottom: 6px;
+}
+
+.empty-state p {
+  font-size: 0.9em;
+  color: #9CA3AF;
+  max-width: 260px;
+  line-height: 1.5;
+}
+
+/* ===== EMPTY STATE BUTTON ===== */
+.invite-btn {
+  margin-top: 18px;
+  padding: 12px 22px;
+  border: none;
+  border-radius: 999px;
+  background: #FB923C;
+  color: white;
+  font-family: Nunito, sans-serif;
+  font-weight: 700;
+  font-size: 0.95em;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+.invite-btn:active {
+  transform: scale(0.96);
+}
+.invite-btn:hover {
+  background: #f97316;
+}
+
+/* ===== SELECTION BAR (WA STYLE) ===== */
+.selection-bar{
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 66px;
+  background: var(--accent);
+  color: white;
+  font-weight: bold;
+  backdrop-filter: blur(14px);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  z-index: 99999;
+  transform: translateY(-100%);
+  transition: 0.25s ease;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+  border-bottom-left-radius: 20px;
+  border-bottom-right-radius: 20px;
+}
+  
+body.dark-mode .selection-bar{
+  background: rgba(20,20,20,0.85);
+}
+
+.selection-bar.show{
+  transform: translateY(0);
+}
+.sel-btn{
+  border: none;
+  background: transparent;
+  font-weight: 700;
+  font-size: 15px;
+  cursor: pointer;
+  color: white;
+}
+
+.sel-count{
+  font-weight: 800;
+  font-size: 16px;
+}
+
+.sel-actions{
+  display: flex;
+  gap: 12px;
+}
+/* ICON BUTTON */
+.sel-icon {
+  width: 25px;
+  height: 25px;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.12s ease;
+}
+
+/* Hover (desktop + PWA webview) */
+.sel-icon:hover {
+  background: rgba(0, 0, 0, 0.06);
+}
+
+/* Click / Tap effect (mobile feel) */
+.sel-icon:active {
+  transform: scale(0.92);
+  background: rgba(0, 0, 0, 0.08);
+}
+/* ===== SVG FINAL (TIDAK PERLU UBAH ISI SVG) ===== */
+
+/* Semua SVG di selection bar */
+.selection-bar svg {
+  image-rendering: -webkit-optimize-contrast;
+  shape-rendering: geometricPrecision;
+}
+
+/* Paksa semua path & shape jadi putih
+   (override fill="#000000" di SVG pin) */
+.selection-bar svg path,
+.selection-bar svg circle,
+.selection-bar svg rect,
+.selection-bar svg polygon {
+  fill: white !important;
+  stroke: white !important;
+}
+
+/* Icon default (pin) warna putih */
+#pinBtn svg {
+  filter: brightness(0) invert(1);
+}
+
+/* Delete icon jadi merah modern */
+#deleteBtn svg path {
+  fill: white !important;
+  stroke: white !important;
+}
+
+/* Hover effect modern minimalis */
+.sel-icon:hover svg {
+  transform: scale(1.05);
+  transition: transform 0.15s ease;
+}
+
+/* Click / tap feedback (mobile feel seperti WhatsApp) */
+.sel-icon:active svg {
+  transform: scale(0.9);
+}
+
+.chat-item.selected {
+  background: rgba(251,146,60,0.12);
+  transform: scale(0.98);
+}
+
+/* ===== POPUP MODAL (LEBIH BESAR & MODERN) ===== */
+.popup-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(6px);
+  z-index: 99999;
+  padding: 20px; /* biar tidak mepet di HP */
+}
+
+/* BOX POPUP */
+.popup-content {
+  width: 100%;
+  max-width: 420px; /* 🔥 DIBESARKAN (tadinya 300px) */
+  background: #ffffff;
+  padding: 26px 22px;
+  border-radius: 18px; /* lebih smooth */
+  text-align: center;
+  box-shadow: 
+    0 20px 60px rgba(0, 0, 0, 0.25),
+    0 8px 20px rgba(0, 0, 0, 0.15);
+  animation: popupScale 0.25s ease;
+}
+
+/* ANIMASI MUNCUL */
+@keyframes popupScale {
+  from {
+    transform: scale(0.85);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* TEXT */
+.popup-content p {
+  margin-bottom: 24px;
+  font-size: 18px; /* 🔥 dari 14px jadi lebih besar */
+  font-weight: 600;
+  color: #111827;
+  line-height: 1.5;
+}
+
+/* CONTAINER BUTTON */
+.popup-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+/* BUTTON UMUM */
+.popup-actions button {
+  flex: 1;
+  padding: 12px 16px; /* 🔥 tombol lebih besar */
+  border-radius: 12px;
+  border: none;
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+/* BUTTON BATAL */
+.popup-cancel {
+  background: #F3F4F6;
+  color: #374151;
+}
+
+.popup-cancel:active {
+  transform: scale(0.96);
+}
+
+/* BUTTON DELETE (DANGER) */
+.popup-confirm {
+  background: #EF4444;
+  color: white;
+}
+
+.popup-confirm:active {
+  transform: scale(0.96);
+  background: #DC2626;
+}
+
+#popupConfirm { background-color: #FB923C; color: #fff; }
+#popupCancel { background-color: #E5E7EB; color: #111827; }

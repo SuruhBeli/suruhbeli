@@ -1,16 +1,5 @@
-// ===== Firebase Config ===== //
-  firebase.initializeApp({
-    apiKey: "AIzaSyByQl0BXZoSMzrULUNA6l7UVFQjXmvsdJE",
-    authDomain: "suruhbeli-e8ae8.firebaseapp.com",
-    projectId: "suruhbeli-e8ae8",
-    databaseURL: "https://suruhbeli-e8ae8-default-rtdb.asia-southeast1.firebasedatabase.app"
-  });
 
-  const db = firebase.firestore();
-  const auth = firebase.auth();
-  const rtdb = firebase.database();
-  
-  // === DOMS === //
+ // === DOMS === //
   const chatContainer = document.getElementById("chatContainer");
   const input = document.getElementById("messageInput");
   const inputBox = document.querySelector(".input-box");
@@ -34,8 +23,11 @@
   let actionBar = null;
   let currentUser = null;
   let otherUserId = null;
-  let unsubscribeMessages = null;
   let lastMessageDate = null;
+  let typingRefGlobal = null;
+  let typingInputHandler = null;
+  // === GLOBAL REGISTRY LISTENER (WAJIB) === //
+  window.messageListeners = window.messageListeners || {};
   let replyState = {
     active: false,
     messageId: null,
@@ -52,22 +44,29 @@
   }
 
 // ===== LOGIN CEK ===== //
-auth.onAuthStateChanged(user=>{
-  if(user){
-    currentUser = user;
-    setupTypingIndicator();
-    loadCachedPartner();
-    loadChatRoomInfo();
-    loadCachedMessages(); // render cache dulu
-    setupRealtimeMessages(); // lalu realtime update
-    setupOnlineStatus();
-    markAsDeliveredRealtime();
-    markAsReadRealtime();
-  } else {
+(async () => {
+  currentUser = await window.waitForUser();  // <- ini di sini
+  if (!currentUser) {
     window.location.href = "register.html";
+    return;
   }
-});
 
+  await window.idbReady;  // tunggu IndexedDB siap
+
+  // 🔥 Bersihkan listener lama (kalau SPA/pindah room)
+  if (window.cleanupPageListeners) {
+    window.cleanupPageListeners();
+  }
+
+  // Inisialisasi fitur chat
+  setupTypingIndicator();
+  loadChatRoomInfo();
+  setupOnlineStatus();
+  loadCachedMessagesIDB();
+  setupRealtimeMessagesSafe();
+  markAsDeliveredRealtime();
+  markAsReadRealtime();
+})();
 // ===== ONLINE STATUS ===== //
 function setupOnlineStatus() {
   if(!currentUser) return;
@@ -99,13 +98,18 @@ function setupOnlineStatus() {
   });
 }
 
-// ===== TYPING INDICATOR (REALTIME) ===== //
+// ===== TYPING INDICATOR (REALTIME - CLEAN & SAFE) ===== //
 function setupTypingIndicator(){
   if(!currentUser || !roomId || !input) return;
 
-  const typingRef = rtdb.ref(`typing/${roomId}/${currentUser.uid}`);
+  // 🔥 Hindari setup dobel
+  if(typingRefGlobal) return;
 
-  input.addEventListener("input", () => {
+  const typingRef = rtdb.ref(`typing/${roomId}/${currentUser.uid}`);
+  typingRefGlobal = typingRef;
+
+  // Handler disimpan biar bisa di-remove saat cleanup
+  typingInputHandler = () => {
     // Set sedang mengetik
     typingRef.set(true);
 
@@ -113,22 +117,68 @@ function setupTypingIndicator(){
     clearTimeout(window.typingTimeout);
     window.typingTimeout = setTimeout(() => {
       typingRef.set(false);
-    }, 1200); // 1.2 detik = smooth seperti WhatsApp
+    }, 1200);
+  };
+
+  input.addEventListener("input", typingInputHandler);
+
+  // 🔥 Auto stop typing jika tab disembunyikan (lebih modern dari beforeunload)
+  document.addEventListener("visibilitychange", () => {
+    if(document.visibilityState !== "visible"){
+      typingRef.set(false);
+    }
   });
 
-  // Jika user keluar halaman → auto stop typing
-  window.addEventListener("beforeunload", () => {
-    typingRef.set(false);
-  });
+  // 🔥 Backup jika halaman benar-benar ditutup
+  window.addEventListener("beforeunload", cleanupTyping);
+}
+// ===== CLEANUP ROOM (ANTI MEMORY LEAK & FIRESTORE STORM) ===== //
+function cleanupTyping(){
+  if(typingRefGlobal){
+    typingRefGlobal.set(false);
+  }
+  clearTimeout(window.typingTimeout);
 }
 
+function cleanupRoomListeners(){
+  // 1. Stop typing
+  cleanupTyping();
+
+  // 2. 🔥 STOP REALTIME GLOBAL (ANTI FIRESTORE STORM)
+  if (window.unsubscribeMessages) {
+    window.unsubscribeMessages();
+    window.unsubscribeMessages = null;
+  }
+
+  // 3. Reset registry room
+  if (roomId && window.messageListeners && window.messageListeners[roomId]) {
+    delete window.messageListeners[roomId];
+  }
+
+  // 4. Remove input listener (ANTI DUPLIKAT)
+  if (input && typingInputHandler) {
+    input.removeEventListener("input", typingInputHandler);
+    typingInputHandler = null;
+  }
+
+  // 5. Reset typing ref
+  typingRefGlobal = null;
+
+  console.log("🧹 Room listeners cleaned:", roomId);
+}
+
+// 🔥 Saat user keluar halaman / pindah halaman navbar SPA
+window.addEventListener("beforeunload", cleanupRoomListeners);
+
+// 🔥 Jika kamu pakai navigasi tanpa reload (app modern)
+window.addEventListener("pagehide", cleanupRoomListeners);
 // ===== CHAT ROOM INFO =====
 function loadChatRoomInfo() {
     db.collection("chatRooms").doc(roomId).get()
       .then(roomDoc => {
         if(!roomDoc.exists) return;
         const roomData = roomDoc.data();
-        const otherUserId = Object.keys(roomData.participants || {}).find(uid => uid !== currentUser.uid);
+        otherUserId = Object.keys(roomData.participants || {}).find(uid => uid !== currentUser.uid);
         if(!otherUserId) return;
 
         // ===== 1. Cache partner dulu =====
@@ -213,32 +263,108 @@ function loadCachedMessages() {
   }
 
 // ===== REALTIME MESSAGES =====
-function setupRealtimeMessages() {
-  db.collection("chatRooms").doc(roomId)
-    .collection("messages")
-    .orderBy("createdAt")
-    .onSnapshot(snapshot => {
-      renderMessages(snapshot);
+function setupRealtimeMessagesSafe() {
+  if (!roomId || !currentUser) return;
 
-      // update cache
-      const messages = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      localStorage.setItem("chat_" + roomId, JSON.stringify(messages));
+  // 🧠 Cegah listener dobel per room
+  if (window.messageListeners && window.messageListeners[roomId]) {
+    console.log("⚠️ Listener sudah aktif untuk room:", roomId);
+    return;
+  }
+
+  const ref = db.collection("chatRooms")
+    .doc(roomId)
+    .collection("messages")
+    .orderBy("localCreatedAt");
+
+  // 🔥 SIMPAN KE GLOBAL (BUKAN LOCAL)
+  window.unsubscribeMessages = ref.onSnapshot(snapshot => {
+
+    console.log("📡 Realtime aktif:", roomId); // debug aman
+
+    snapshot.docChanges().forEach(change => {
+      const doc = change.doc;
+      const data = { id: doc.id, ...doc.data() };
+
+      // Skip jika dihapus untuk user ini
+      if (data.deletedFor && data.deletedFor[currentUser.uid]) return;
+
+      if (change.type === "added") {
+        appendSingleMessage(data);
+      }
+
+      if (change.type === "modified") {
+        updateSingleMessage(data);
+      }
+
+      if (change.type === "removed") {
+        removeSingleMessage(doc.id);
+      }
     });
+
+  }, error => {
+    console.error("Realtime error:", error);
+  });
+
+  // 🧠 Tandai registry global
+  window.messageListeners = window.messageListeners || {};
+  window.messageListeners[roomId] = true;
+}
+function appendSingleMessage(data) {
+  // 🔥 1. Cek apakah sudah ada message asli
+  if (document.querySelector(`[data-id="${data.id}"]`)) return;
+
+  // 🔥 2. HAPUS temp message kalau ada (biar tidak dobel)
+  const tempEl = document.querySelector(`[data-id^="temp_"][data-sender-id="${data.senderId}"]`);
+  if (tempEl) {
+    const row = tempEl.closest(".message-row");
+    if (row) row.remove();
   }
-  
-// ===== KULT MULTI SECLECT ===== //
-function updateSelectionCount(){
-  if(!actionBar) return;
-  if(!countEl) return;
-  const count = selectedMessages.size;
-  countEl.textContent = count;
-  // Auto vibrate kecil biar kerasa UX premium
-  if(navigator.vibrate && count > 0){
-    navigator.vibrate(5);
-  }
+
+  // 🔥 3. Render pakai engine utama (bukan div sederhana)
+  renderMessages({
+    forEach: (cb) => {
+      cb({
+        id: data.id,
+        data: () => data
+      });
+    }
+  }, { appendOnly: true });
+
+  // 🔥 4. Save cache biar load instant
+  saveMessageToCache(data);
+  saveMessagesToIDB([{ ...data, roomId }]);
+}
+function updateSingleMessage(data) {
+  const oldMsg = document.querySelector(`[data-id="${data.id}"]`);
+  if (!oldMsg) return;
+
+  // Hapus row parent (biar render ulang bersih)
+  const row = oldMsg.closest(".message-row");
+  if (row) row.remove();
+
+  // Render ulang 1 pesan dengan state terbaru
+  renderMessages({
+    forEach: (cb) => {
+      cb({
+        id: data.id,
+        data: () => data
+      });
+    }
+  }, { appendOnly: true });
+
+  // Update cache
+  saveMessageToCache(data);
+}
+function removeSingleMessage(id) {
+  const msgEl = document.querySelector(`[data-id="${id}"]`);
+  if (!msgEl) return;
+
+  const row = msgEl.closest(".message-row");
+  if (row) row.remove();
 }
 
-// ===== POPUP PRESS ===== //
+// ===== LONG PRESS AND POPUP ACTION ===== //
 function showSelectionPopup() {
   // Kalau sudah ada → hanya update counter
   if(actionBar){
@@ -329,12 +455,15 @@ function showSelectionPopup() {
   updateSelectionCount();
 }
 function updateSelectionCount(){
-  const countEl = document.getElementById("selectionCount");
-  if(!countEl) return; // ⛔ cegah error saat popup belum ada
-  countEl.textContent = selectedMessages.size;
+  if(!actionBar) return;
+  if(!countEl) return;
+  const count = selectedMessages.size;
+  countEl.textContent = count;
+  // Auto vibrate kecil biar kerasa UX premium
+  if(navigator.vibrate && count > 0){
+    navigator.vibrate(5);
+  }
 }
-
-// ===== update clearSelection ===== //
 function clearSelection() {
   selectedMessages.forEach(msgEl => msgEl.classList.remove('selected'));
   selectedMessages.clear();
@@ -343,8 +472,6 @@ function clearSelection() {
     setTimeout(()=> { actionBar.remove(); actionBar=null; }, 200);
   }
 }
-
-// ===== DELETE OPTIONS MODAL ===== //
 function showDeleteOptions(){
   if(selectedMessages.size === 0) return;
   // Cek apakah ada pesan orang lain (biar tombol everyone hilang)
@@ -428,8 +555,6 @@ function showDeleteOptions(){
     };
   }
 }
-
-// ===== SMOOTH CLOSE POPUP ===== //
 function closeDeletePopup(overlay){
   overlay.style.opacity = "0";
   overlay.style.transition = "0.15s ease";
@@ -437,8 +562,6 @@ function closeDeletePopup(overlay){
     overlay.remove();
   },150);
 }
-
-// ===== DELETE FOR ME ===== //
 function deleteForMe(){
   selectedMessages.forEach(msgEl=>{
     const msgId = msgEl.dataset.id;
@@ -462,8 +585,6 @@ function deleteForMe(){
   if(navigator.vibrate) navigator.vibrate(10);
   clearSelection();
 }
-
-// ===== DELETE FOR EVERYONE ===== //
 function deleteForEveryone(){
   selectedMessages.forEach(msgEl=>{
     // BLOCK kalau bukan pesan sendiri
@@ -497,8 +618,7 @@ function deleteForEveryone(){
   if(navigator.vibrate) navigator.vibrate([10,30,10]);
   clearSelection();
 }
-
-// ===== CANCEL SELECTION HANYA JIKA KLIK AREA LUAR CHAT ===== //
+// ===== CANCEL SELECTION KLIK AREA LUAR CHAT ===== //
 document.addEventListener('click', e=>{
   if(selectedMessages.size === 0) return;
 
@@ -517,8 +637,6 @@ document.addEventListener('click', e=>{
   // Baru batal kalau klik area kosong
   clearSelection();
 });
-
-// ===== BUBBLE CLICK AND SWIPE ===== //
 function enableLongPressSelection() {
   document.querySelectorAll('.message-row').forEach(rowEl => {
     if (rowEl.dataset.listener === "true") return;
@@ -685,7 +803,6 @@ function getMessageDate(timestamp){
   }
   return new Date(timestamp);
 }
-
 function isDifferentDay(date1, date2){
   if (!date1 || !date2) return true;
 
@@ -695,7 +812,6 @@ function isDifferentDay(date1, date2){
     date1.getFullYear() !== date2.getFullYear()
   );
 }
-
 function formatDateCard(date){
   const now = new Date();
   const diffTime = now - date;
@@ -715,6 +831,7 @@ function formatDateCard(date){
     year: 'numeric'
   });
 }
+
 // CENTANG WA //
 function getCheckIcon(data) {
   // Hanya tampil di pesan milik sendiri
@@ -863,6 +980,51 @@ function updateE2EPlaceholder(){
   e2eCard.style.display = "flex"; // selalu tampil
 }
 
+// ===== CACHE MESSAGE IDB ===== //
+function saveMessagesToIDB(messages){
+  if(!window.dbIDB) return;
+  const tx = window.dbIDB.transaction("chats", "readwrite");
+  const store = tx.objectStore("chats");
+
+  messages.forEach(msg=>{
+    store.put({
+      id: msg.id,
+      roomId: msg.roomId,
+      senderId: msg.senderId,
+      text: msg.text || "",
+      deleted: msg.deleted || false,
+      deletedFor: msg.deletedFor || null,
+      replyTo: msg.replyTo || null,
+      createdAt: msg.createdAt?.toMillis 
+        ? msg.createdAt.toMillis() 
+        : msg.createdAt || Date.now()
+    });
+  });
+}
+function loadCachedMessagesIDB(){
+  if(!window.dbIDB) return;
+
+  const tx = window.dbIDB.transaction("chats","readonly");
+  const store = tx.objectStore("chats");
+  const req = store.getAll();
+
+  req.onsuccess = ()=>{
+    const all = req.result || [];
+
+    // Filter hanya pesan room ini
+    const cached = all
+      .filter(m => m.roomId === roomId)
+      .sort((a,b)=> (a.createdAt||0)-(b.createdAt||0));
+
+    if(cached.length === 0) return;
+
+    renderMessages({
+      forEach: (cb)=> cached.forEach(msg=>{
+        cb({ id: msg.id, data: ()=> msg });
+      })
+    });
+  };
+}
 // ===== SAVE CHACE ===== //
 function saveMessageToCache(message) {
   let cached = localStorage.getItem("chat_" + roomId);
@@ -969,7 +1131,8 @@ function sendMessage() {
   const tempMessage = {
     id: "temp_" + localTime,
     ...messageData,
-    createdAt: localTime
+    createdAt: localTime,
+    isTemp: true // 🔥 PENANDA OPTIMISTIC
   };
 
   renderMessages({
@@ -980,6 +1143,12 @@ function sendMessage() {
   }, { appendOnly: true });
 
   // ===== Kirim ke Firestore =====
+  // 🔹 Reset deletedFor supaya room muncul lagi untuk semua peserta
+  db.collection("chatRooms")
+    .doc(roomId)
+    .set({ deletedFor: {} }, { merge: true })
+    .catch(err => console.error("Reset deletedFor error:", err));
+    
   db.collection("chatRooms")
     .doc(roomId)
     .collection("messages")
@@ -1013,10 +1182,6 @@ function sendMessage() {
 
   // 🔥 Tetap fokus supaya keyboard tidak hilang
   input.focus();
-
-  const val = input.value;
-  input.value = "";
-  input.value = val;
 }
 // CENTANG DUA ABU DAN BIRU //
 function markAsDeliveredRealtime() {

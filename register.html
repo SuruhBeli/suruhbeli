@@ -6,6 +6,7 @@
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#FB923C">
   <link rel="icon" href="ikon-512.png">
+  <link rel="stylesheet" href="register.css">
   <title>Daftar - SuruhBeli</title>
 
   <!-- Font -->
@@ -16,300 +17,62 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.10.1/lottie.min.js"></script>
-<style>
-:root{
-  /* ===== LIGHT MODE (DEFAULT SEKARANG) ===== */
-  --bg-main:#FFF7ED;
-  --text-main:#7C2D12;
-  --card-bg:#ffffff;
-  --border-soft:#FED7AA;
-  --text-secondary:#374151;
-  --text-muted:#6B7280;
-  --accent:#FB923C;
-  --active-bg:#FFF1E6;
-  --navbar-bg: #FFF7ED;
-  --navbar-text: #6B7280;
-  --navbar-active-bg: #FB923C;
-  --navbar-active-text: #FB923C;
-  --navbar-border-radius: 35px;
-  --navbar-shadow: 0 8px 20px rgba(0,0,0,0.15);
-  --navbar-glass-bg: rgba(255,255,255,0.55);
-  --navbar-glass-border: 1px solid rgba(255,255,255,0.35);
-  --navbar-glass-blur: blur(14px);
-  --nav-circle-shadow: none;
-}
-
-/* ===== DARK MODE GLOBAL ===== */
-body.dark-mode{
-  --bg-main:#0F172A;
-  --text-main:#F8FAFC;
-  --card-bg:#1E293B;
-  --border-soft:#334155;
-  --text-secondary:#E2E8F0;
-  --text-muted:#94A3B8;
-  --accent:#FB923C;
-  --active-bg:#1E293B;
-  --navbar-bg: rgba(30,41,59,0.85);
-  --navbar-text: #94A3B8;
-  --navbar-active-bg: #FB923C;
-  --navbar-active-text: #FB923C;
-  --navbar-shadow: 0 10px 30px rgba(0,0,0,0.45);
-  --navbar-glass-bg: rgba(15,23,42,0.65);
-  --navbar-glass-border: 1px solid rgba(148,163,184,0.15);
-  --navbar-glass-blur: blur(16px);
-  --nav-circle-shadow:
-    0 8px 22px rgba(0,0,0,0.35),
-    inset 0 2px 6px rgba(255,255,255,0.08);
-}
- *{
-  margin:0;
-  padding:0;
-  box-sizing:border-box;
-  font-family:'Nunito', sans-serif;
-  -webkit-tap-highlight-color: transparent;
-  user-select:none;
-  -webkit-user-select:none;
-  outline:none;
-}
-
-body{
-  background:var(--bg-main);
-  color:var(--text-main);
-  min-height:100vh;
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  padding:20px;
-  transition: background 0.3s ease, color 0.3s ease;
-}
-
-.card{
-  width:100%;
-  max-width:420px;
-  background:var(--card-bg);
-  border-radius:20px;
-  padding:24px 20px;
-  box-shadow:0 10px 30px rgba(0,0,0,0.08);
-  border:1px solid var(--border-soft);
-}
-
-.logo{
-  text-align:center;
-  margin-bottom:18px;
-}
-
-.logo img{
-  width:130px;
-}
-
-h1{
-  font-size:20px;
-  text-align:center;
-  margin-bottom:6px;
-  color:var(--text-main);
-}
-
-.sub{
-  font-size:13px;
-  text-align:center;
-  color:var(--text-muted);
-  margin-bottom:22px;
-}
-
-.label{
-  font-size:16px;
-  font-weight:600;
-  margin-bottom:6px;
-  display:block;
-  color:var(--text-secondary);
-}
-
-.input{
-  width:100%;
-  padding:14px;
-  border-radius:12px;
-  border:1px solid var(--border-soft);
-  outline:none;
-  font-size:15px;
-  margin-bottom:14px;
-  background:var(--card-bg);
-  color:var(--text-main);
-  transition: border 0.2s ease, box-shadow 0.2s ease;
-}
-
-.input:focus{
-  border-color:var(--accent);
-  box-shadow:0 0 0 3px rgba(251,146,60,0.15);
-}
-
-/* ===== BTN LOKASI (SUDAH IKUT ROOT SYSTEM) ===== */
-.btn-lokasi{
-  width:100%;
-  padding:14px;
-  border-radius:12px;
-  border:1px solid var(--border-soft);
-  background:var(--active-bg);     /* dari root */
-  color:var(--text-main);
-  font-size: 15px;
-  font-weight:700;
-  cursor:pointer;
-  margin-bottom:16px;
-
-  transition: 
-    transform 0.15s ease,
-    box-shadow 0.25s ease,
-    background 0.25s ease,
-    color 0.25s ease,
-    border 0.25s ease;
-}
-
-/* Hover (desktop + android feel premium) */
-.btn-lokasi:hover{
-  box-shadow: 0 8px 20px rgba(0,0,0,0.12);
-  border-color: var(--accent);
-}
-
-/* Efek ditekan (mobile native feel) */
-.btn-lokasi:active{
-  transform: scale(0.96);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.18);
-}
-
-/* LOADING STATE */
-.btn-lokasi.loading{
-  background: var(--border-soft);
-  color: var(--text-secondary);
-  pointer-events: none;
-  opacity: 0.95;
-  border-color: var(--border-soft);
-}
-
-/* SUCCESS STATE (pakai accent root) */
-.btn-lokasi.success{
-  background: var(--accent);
-  color: #ffffff;
-  border-color: var(--accent);
-  box-shadow: 0 10px 26px rgba(251,146,60,0.35);
-}
-
-/* ERROR STATE (ikut tema, bukan merah keras) */
-.btn-lokasi.error{
-  background: var(--card-bg);
-  color: var(--text-secondary);
-  border: 1px dashed var(--border-soft);
-  box-shadow: none;
-}
-
-.btn-google{
-  width:100%;
-  padding:14px;
-  border-radius:14px;
-  border:1px solid var(--border-soft);
-  background:var(--card-bg);
-  color:var(--text-main);
-  font-size:15px;
-  font-weight:600;
-  cursor:pointer;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  gap:10px;
-  box-shadow:0 6px 16px rgba(0,0,0,0.05);
-  transition:0.2s;
-}
-
-.btn-google:active{
-  transform:scale(0.98);
-}
-
-.google-logo{
-  width:25px;
-  height:25px;
-  background:white;
-  padding:3px;
-  border-radius:50%;
-}
-
-/* ===== POPUP (IKUT ROOT & DARK MODE) ===== */
-.popup{
-  position:fixed;
-  top:0;
-  left:0;
-  width:100%;
-  height:100%;
-  display:none;
-  align-items:center;
-  justify-content:center;
-  background:rgba(0,0,0,0.25);
-  backdrop-filter: blur(6px);
-  z-index:999;
-}
-
-.popup-box{
-  background:var(--card-bg);
-  padding:22px 26px;
-  border-radius:16px;
-  text-align:center;
-  box-shadow:0 20px 40px rgba(0,0,0,0.18);
-  animation:scaleIn 0.25s ease;
-  border:1px solid var(--border-soft);
-}
-
-.loader{
-  width:36px;
-  height:36px;
-  border:4px solid var(--border-soft);
-  border-top:4px solid var(--accent);
-  border-radius:50%;
-  animation:spin 1s linear infinite;
-  margin:0 auto 12px;
-}
-
-@keyframes spin{
-  0%{transform:rotate(0deg);}
-  100%{transform:rotate(360deg);}
-}
-
-@keyframes scaleIn{
-  from{transform:scale(0.9); opacity:0;}
-  to{transform:scale(1); opacity:1;}
-}
-
-.popup-text{
-  font-weight:600;
-  color:var(--text-main);
-}
-</style>
 </head>
 <body>
 
-  <div class="card">
-    <div class="logo">
-      <img src="logo.png" alt="SuruhBeli">
-    </div>
-
-    <h1>Buat Akun SuruhBeli</h1>
-    <div class="sub">Login cepat & gratis pakai Google</div>
-
-    <label class="label">Nomor HP</label>
-    <input 
-      type="tel" 
-      id="noHP" 
-      class="input" 
-      placeholder="Contoh: 08xxxxxxxxxx"
-    />
-
-    <button id="btnLokasi" class="btn-lokasi" onclick="ambilLokasi()">
-      📍 Ambil Lokasi Otomatis
-    </button>
-
-    <button class="btn-google" onclick="loginGoogle()">
-      <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" 
-           alt="Google" 
-           class="google-logo">
-      Masuk dengan Google
-    </button>
+<div class="card">
+  <div class="logo">
+    <img src="logo.png" alt="SuruhBeli">
   </div>
+
+  <h1>Masuk SuruhBeli</h1>
+  <div class="sub">Login / Daftar otomatis</div>
+
+  <label class="label">Email</label>
+  <input 
+    type="email" 
+    id="email" 
+    class="input" 
+    placeholder="Masukkan email"
+  />
+
+  <label class="label">Password</label>
+  <input 
+    type="password" 
+    id="password" 
+    class="input" 
+    placeholder="Masukkan password"
+  />
+
+  <button class="btn-primary" onclick="openConfirmPopup()">
+    Masuk
+  </button>
+
+  <div class="divider"><span>atau</span></div>
+
+  <button class="btn-google" onclick="loginGoogle()">
+    <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" 
+         class="google-logo">
+    Masuk dengan Google
+  </button>
+</div>
+
+<!-- POPUP KONFIRMASI PASSWORD -->
+<div class="popup" id="confirmPopup">
+  <div class="popup-box">
+    <div class="popup-title">Konfirmasi Password</div>
+    <input 
+      type="password" 
+      id="confirmPassword" 
+      class="input"
+      placeholder="Masukkan ulang password"
+    />
+    <div class="popup-buttons">
+      <button class="btn-cancel" onclick="closeConfirmPopup()">Batal</button>
+      <button class="btn-ok" onclick="confirmEmailAuth()">OK</button>
+    </div>
+  </div>
+</div>
 
   <!-- POPUP -->
   <div class="popup" id="popup">
@@ -321,218 +84,6 @@ h1{
       </div>
     </div>
   </div>
-
-<script>
-  const firebaseConfig = {
-    apiKey: "AIzaSyByQl0BXZoSMzrULUNA6l7UVFQjXmvsdJE",
-    authDomain: "suruhbeli-e8ae8.firebaseapp.com",
-    projectId: "suruhbeli-e8ae8",
-    storageBucket: "suruhbeli-e8ae8.firebasestorage.app",
-    messagingSenderId: "5783247867",
-    appId: "1:5783247867:web:8f57e09a7dc4565378c95e"
-  };
-
-  firebase.initializeApp(firebaseConfig);
-  const auth = firebase.auth();
-  const db = firebase.firestore();
-
-  // 🔥 PENTING: Pakai LOCAL persistence (anti missing state)
-  auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
-
-  let latUser = 0;
-  let lngUser = 0;
-
-  const popup = document.getElementById("popup");
-  const popupText = document.getElementById("popupText");
-  let lottieAnim = lottie.loadAnimation({
-    container: document.getElementById('lottieLoader'), // container div
-    renderer: 'svg',
-    loop: true,
-    autoplay: false, // start manual
-    path: 'loading.json' // ganti dengan file Lottie JSON kamu
-  });
-  const loader = document.getElementById("loader");
-
-function showPopup(text, loading = true){
-  popup.style.display = "flex";
-  popupText.innerText = text;
-  if(loading){
-    lottieAnim.goToAndPlay(0, true); // mulai animasi
-  } else {
-    lottieAnim.stop(); // hentikan animasi
-  }
-}
-
-function hidePopup(delay = 1200){
-  setTimeout(()=>{
-    popup.style.display = "none";
-    lottieAnim.stop(); // pastikan animasi berhenti
-  }, delay);
-}
-
-  // ======================
-  // AMBIL LOKASI (SAFE)
-  // ======================
-  function ambilLokasi(){
-    const btn = document.getElementById("btnLokasi");
-  
-    // Reset state dulu
-    btn.classList.remove("success", "error");
-    btn.classList.add("loading");
-    btn.innerText = "📡 Mengambil lokasi...";
-  
-    showPopup("Mengambil lokasi...");
-  
-    if(!navigator.geolocation){
-      latUser = 0;
-      lngUser = 0;
-  
-      btn.classList.remove("loading");
-      btn.classList.add("error");
-      btn.innerText = "⚠️ GPS tidak didukung";
-  
-      showPopup("GPS tidak didukung, pakai default ✔", false);
-      hidePopup();
-      return;
-    }
-  
-    navigator.geolocation.getCurrentPosition(
-      (pos)=>{
-        latUser = pos.coords.latitude;
-        lngUser = pos.coords.longitude;
-  
-        // 🔥 UBAH WARNA JADI BERHASIL
-        btn.classList.remove("loading");
-        btn.classList.add("success");
-        btn.innerText = "✔ Lokasi Berhasil Diambil";
-  
-        showPopup("Lokasi berhasil diambil ✔", false);
-        hidePopup();
-      },
-      (err)=>{
-        latUser = 0;
-        lngUser = 0;
-  
-        // 🔥 WARNA GAGAL
-        btn.classList.remove("loading");
-        btn.classList.add("error");
-        btn.innerText = "❌ Gagal Ambil Lokasi (Tap lagi)";
-  
-        showPopup("Gagal ambil lokasi, pakai default ✔", false);
-        hidePopup();
-        console.log("Error GPS:", err);
-      },
-      { 
-        enableHighAccuracy:true, 
-        timeout:10000,
-        maximumAge:0
-      }
-    );
-  }
-
-  // ======================
-  // LOGIN GOOGLE (ANTI ERROR STATE)
-  // ======================
-  async function loginGoogle(){
-    const noHP = document.getElementById("noHP").value.trim();
-
-    if(noHP.length < 10){
-      showPopup("Nomor HP tidak valid", false);
-      hidePopup();
-      return;
-    }
-
-    try{
-      showPopup("Membuka login Google...");
-
-      const provider = new firebase.auth.GoogleAuthProvider();
-      provider.setCustomParameters({
-        prompt: "select_account"
-      });
-
-      // 🔥 GANTI: pakai POPUP dulu (lebih stabil dari redirect)
-      const result = await auth.signInWithPopup(provider);
-      const user = result.user;
-
-      await simpanUser(user, noHP);
-
-    }catch(error){
-      console.error("Login Error:", error);
-
-      // Fallback ke redirect jika popup diblokir
-      if(error.code === "auth/popup-blocked"){
-        const provider = new firebase.auth.GoogleAuthProvider();
-        localStorage.setItem("temp_nohp", noHP);
-        await auth.signInWithRedirect(provider);
-        return;
-      }
-
-      showPopup("Login gagal: " + error.message, false);
-      hidePopup(2000);
-    }
-  }
-
-  // ======================
-  // SIMPAN USER KE FIRESTORE
-  // ======================
-  async function simpanUser(user, noHP){
-    try{
-      showPopup("Menyimpan data akun...");
-
-      const userRef = db.collection("users").doc(user.uid);
-      const doc = await userRef.get();
-
-      if(!doc.exists){
-        await userRef.set({
-          uid: user.uid,
-          nama: user.displayName || "",
-          email: user.email || "",
-          noHP: noHP,
-          lat: latUser,
-          lng: lngUser,
-          role: "user",
-          createdAt: firebase.firestore.FieldValue.serverTimestamp()
-        });
-      }
-
-      showPopup("Login berhasil ✔", false);
-
-      setTimeout(()=>{
-        window.location.href = "index.html";
-      }, 1200);
-
-    }catch(err){
-      console.error("Firestore Error:", err);
-      showPopup("Gagal simpan data user", false);
-      hidePopup(2000);
-    }
-  }
-
-  // ======================
-  // HANDLE REDIRECT (JIKA DIPAKAI)
-  // ======================
-  auth.getRedirectResult().then(async (result)=>{
-    if(result.user){
-      const noHP = localStorage.getItem("temp_nohp") || "";
-      await simpanUser(result.user, noHP);
-      localStorage.removeItem("temp_nohp");
-    }
-  }).catch((error)=>{
-    console.error("Redirect Error:", error);
-  });
-//SINKRON TEMA 
-function loadTheme(){
-  const savedTheme = localStorage.getItem("themeMode");
-  if(savedTheme === "dark"){
-    document.body.classList.add("dark-mode");
-  }else{
-    document.body.classList.remove("dark-mode");
-  }
-}
-
-// Jalankan saat halaman selesai load
-window.addEventListener("load", loadTheme);
-</script>
-
+<script src="register.js"></script>
 </body>
 </html>

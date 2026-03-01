@@ -524,21 +524,23 @@ window.addEventListener('load', updateActiveCircle);
    - Stabil di PWA & Android back button
 ===================================================== */
 (function () {
+  const page = window.location.pathname.split("/").pop();
 
-  // 1. Replace state sekarang (hapus jejak sebelumnya)
-  history.replaceState({ page: "aktivitas" }, "", location.href);
+  if (page === "profil.html") {
 
-  // 2. Push dummy state untuk menangkap tombol back
-  history.pushState({ page: "aktivitas-lock" }, "", location.href);
+    // Bersihkan history lama
+    history.replaceState(null, "", location.href);
 
-  // 3. Tangkap tombol back (Android / Browser)
-  window.addEventListener("popstate", function () {
+    // Tambah state dummy supaya back bisa ditangkap
+    history.pushState({ profil: true }, "", location.href);
 
-    console.log("🔙 Back ditekan di Aktivitas → Redirect ke Index");
+    window.addEventListener("popstate", function () {
 
-    // Pakai replace agar TIDAK masuk history lagi
-    window.location.replace("index.html");
+      // Paksa langsung ke index TANPA history
+      window.location.replace("index.html");
 
-  });
+    });
 
+    console.log("🔁 Profil locked: Back → Index");
+  }
 })();

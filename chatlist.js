@@ -498,21 +498,23 @@ window.addEventListener('load', updateActiveCircle);
    - Nyambung dengan index root lock
 ===================================================== */
 (function () {
+  const page = window.location.pathname.split("/").pop();
 
-  // 1️⃣ Hapus jejak history sebelumnya
-  history.replaceState({ page: "chatlist" }, "", location.href);
+  if (page === "profil.html") {
 
-  // 2️⃣ Tambah dummy state agar tombol back bisa ditangkap
-  history.pushState({ page: "chatlist-lock" }, "", location.href);
+    // Bersihkan history lama
+    history.replaceState(null, "", location.href);
 
-  // 3️⃣ Tangkap tombol BACK (Android / Browser)
-  window.addEventListener("popstate", function () {
+    // Tambah state dummy supaya back bisa ditangkap
+    history.pushState({ profil: true }, "", location.href);
 
-    console.log("🔙 Back ditekan di Chatlist → Index");
+    window.addEventListener("popstate", function () {
 
-    // 4️⃣ Paksa ke index TANPA masuk history lagi
-    window.location.replace("index.html");
+      // Paksa langsung ke index TANPA history
+      window.location.replace("index.html");
 
-  });
+    });
 
+    console.log("🔁 Profil locked: Back → Index");
+  }
 })();

@@ -254,8 +254,10 @@ async function cacheLotties() {
 cacheLotties();
 
 // ===== NAV ORDER ===== //
-function goOrder(jenis) {
-  if (!window.currentUser) {
+async function goOrder(jenis) {
+  const user = await window.waitForUser(); // 🔥 ini kunci stabil
+
+  if (!user) {
     loginPopup.classList.add("active");
     authLock.style.display = "block";
     return;

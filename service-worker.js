@@ -3,38 +3,34 @@ const CACHE_NAME = "suruhbeli-cache-v1";
 const STATIC_ASSETS = [
 
   "/",
-  "/index.html",
-  "/index.css",
-  "/index.js",
+  "index.html",
+  "index.css",
+  "index.js",
 
-  "/logo.png",
-  "/ikon-192.png",
-  "/ikon-512.png",
+  "logo.png",
+  "ikon-192.png",
+  "ikon-512.png",
 
-  // CSS
-  "/css/home.css",
-  "/css/profil.css",
-  "/css/aktivitas.css",
-  "/css/chatlist.css",
-  "/css/order.css",
+  "home.css",
+  "profil.css",
+  "aktivitas.css",
+  "chatlist.css",
+  "order.css",
 
-  // JS
-  "/js/home.js",
-  "/js/profil.js",
-  "/js/aktivitas.js",
-  "/js/chatlist.js",
-  "/js/order.js",
+  "home.js",
+  "profil.js",
+  "aktivitas.js",
+  "chatlist.js",
+  "order.js",
 
-  // Images
-  "/assets/images/alert.png",
-  "/assets/images/default.png",
+  "alert.png",
+  "default.png",
 
-  // Lottie
-  "/assets/lottie/barang.json",
-  "/assets/lottie/belanja.json",
-  "/assets/lottie/chat-empty.json",
-  "/assets/lottie/loading.json",
-  "/assets/lottie/makanan.json"
+  "barang.json",
+  "belanja.json",
+  "chat-empty.json",
+  "loading.json",
+  "makanan.json"
 ];
 
 

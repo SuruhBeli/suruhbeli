@@ -1,0 +1,396 @@
+:root{
+  /* ===== LIGHT MODE (DEFAULT SEKARANG) ===== */
+  --bg-main:#FFF7ED;
+  --text-main:#7C2D12;
+  --card-bg:#ffffff;
+  --border-soft:#FED7AA;
+  --text-secondary:#374151;
+  --text-muted:#6B7280;
+  --accent:#FB923C;
+  --active-bg:#FFF1E6;
+  --navbar-bg: #FFF7ED;
+  --navbar-text: #6B7280;
+  --navbar-active-bg: #FB923C;
+  --navbar-active-text: #FB923C;
+  --navbar-border-radius: 35px;
+  --navbar-shadow: 0 8px 20px rgba(0,0,0,0.15);
+  --navbar-glass-bg: rgba(255,255,255,0.55);
+  --navbar-glass-border: 1px solid rgba(255,255,255,0.35);
+  --navbar-glass-blur: blur(14px);
+  --nav-circle-shadow: none;
+}
+
+/* ===== DARK MODE GLOBAL ===== */
+body.dark-mode{
+  --bg-main:#0F172A;
+  --text-main:#F8FAFC;
+  --card-bg:#1E293B;
+  --border-soft:#334155;
+  --text-secondary:#E2E8F0;
+  --text-muted:#94A3B8;
+  --accent:#FB923C;
+  --active-bg:#1E293B;
+  --navbar-bg: rgba(30,41,59,0.85);
+  --navbar-text: #94A3B8;
+  --navbar-active-bg: #FB923C;
+  --navbar-active-text: #FB923C;
+  --navbar-shadow: 0 10px 30px rgba(0,0,0,0.45);
+  --navbar-glass-bg: rgba(15,23,42,0.65);
+  --navbar-glass-border: 1px solid rgba(148,163,184,0.15);
+  --navbar-glass-blur: blur(16px);
+  --nav-circle-shadow:
+    0 8px 22px rgba(0,0,0,0.35),
+    inset 0 2px 6px rgba(255,255,255,0.08);
+}
+ *{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+  font-family:'Nunito', sans-serif;
+  -webkit-tap-highlight-color: transparent;
+  user-select:none;
+  -webkit-user-select:none;
+  outline:none;
+}
+
+body{
+  background:var(--bg-main);
+  color:var(--text-main);
+  min-height:100vh;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  padding:20px;
+  transition: background 0.3s ease, color 0.3s ease;
+}
+
+.card{
+  width:100%;
+  max-width:420px;
+  background:var(--card-bg);
+  border-radius:20px;
+  padding:24px 20px;
+  box-shadow:0 10px 30px rgba(0,0,0,0.08);
+  border:1px solid var(--border-soft);
+}
+
+.logo{
+  text-align:center;
+  margin-bottom:18px;
+}
+
+.logo img{
+  width:130px;
+}
+
+h1{
+  font-size:20px;
+  text-align:center;
+  margin-bottom:6px;
+  color:var(--text-main);
+}
+/* PASSWORD WRAPPER */
+.password-wrapper{
+  position:relative;
+  width:100%;
+}
+
+.password-input{
+  padding-right:45px; /* ruang icon mata */
+}
+
+/* ICON MATA */
+.eye-icon{
+  position:absolute;
+  right:14px;
+  top:50%;
+  transform:translateY(-50%);
+  width:22px;
+  height:22px;
+  color:var(--text-muted);
+  cursor:pointer;
+  transition:0.2s ease;
+}
+
+.eye-icon:active{
+  transform:translateY(-50%) scale(0.9);
+  color:var(--accent);
+}
+
+/* BUTTON PRIMARY */
+.btn-primary{
+  width:100%;
+  padding:14px;
+  border:none;
+  border-radius:14px;
+  background:var(--accent);
+  color:white;
+  font-size:16px;
+  font-weight:700;
+  cursor:pointer;
+  transition:0.2s ease;
+  margin-top:6px;
+}
+
+.btn-primary:active{
+  transform:scale(0.98);
+}
+
+/* DIVIDER */
+.divider{
+  text-align:center;
+  margin:18px 0;
+  position:relative;
+}
+
+.divider::before,
+.divider::after{
+  content:"";
+  position:absolute;
+  top:50%;
+  width:40%;
+  height:1px;
+  background:var(--border-soft);
+}
+
+.divider::before{ left:0; }
+.divider::after{ right:0; }
+
+.divider span{
+  background:var(--card-bg);
+  padding:0 12px;
+  font-size:13px;
+  color:var(--text-muted);
+}
+
+/* POPUP KONFIRMASI */
+.popup{
+  position:fixed;
+  top:0;
+  left:0;
+  width:100%;
+  height:100%;
+  display:none;
+  align-items:center;
+  justify-content:center;
+  background:rgba(0,0,0,0.25);
+  backdrop-filter: blur(6px);
+  z-index:999;
+}
+
+.popup-box{
+  width:90%;
+  max-width:320px;
+  background:var(--card-bg);
+  border-radius:18px;
+  padding:22px;
+  border:1px solid var(--border-soft);
+  box-shadow:0 20px 40px rgba(0,0,0,0.15);
+  animation:scaleIn 0.25s ease;
+}
+
+.popup-title{
+  font-weight:700;
+  font-size:16px;
+  text-align:center;
+  margin-bottom:14px;
+  color:var(--text-main);
+}
+
+.popup-buttons{
+  display:flex;
+  gap:10px;
+  margin-top:10px;
+}
+
+.btn-cancel{
+  flex:1;
+  padding:12px;
+  border-radius:12px;
+  border:1px solid var(--border-soft);
+  background:var(--card-bg);
+  font-weight:600;
+  cursor:pointer;
+}
+
+.btn-ok{
+  flex:1;
+  padding:12px;
+  border:none;
+  border-radius:12px;
+  background:var(--accent);
+  color:white;
+  font-weight:700;
+  cursor:pointer;
+}
+
+.sub{
+  font-size:13px;
+  text-align:center;
+  color:var(--text-muted);
+  margin-bottom:22px;
+}
+
+.label{
+  font-size:16px;
+  font-weight:600;
+  margin-bottom:6px;
+  display:block;
+  color:var(--text-secondary);
+}
+
+.input{
+  width:100%;
+  padding:14px;
+  border-radius:12px;
+  border:1px solid var(--border-soft);
+  outline:none;
+  font-size:15px;
+  margin-bottom:14px;
+  background:var(--card-bg);
+  color:var(--text-main);
+  transition: border 0.2s ease, box-shadow 0.2s ease;
+}
+
+.input:focus{
+  border-color:var(--accent);
+  box-shadow:0 0 0 3px rgba(251,146,60,0.15);
+}
+
+/* ===== BTN LOKASI (SUDAH IKUT ROOT SYSTEM) ===== */
+.btn-lokasi{
+  width:100%;
+  padding:14px;
+  border-radius:12px;
+  border:1px solid var(--border-soft);
+  background:var(--active-bg);     /* dari root */
+  color:var(--text-main);
+  font-size: 15px;
+  font-weight:700;
+  cursor:pointer;
+  margin-bottom:16px;
+
+  transition: 
+    transform 0.15s ease,
+    box-shadow 0.25s ease,
+    background 0.25s ease,
+    color 0.25s ease,
+    border 0.25s ease;
+}
+
+/* Hover (desktop + android feel premium) */
+.btn-lokasi:hover{
+  box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+  border-color: var(--accent);
+}
+
+/* Efek ditekan (mobile native feel) */
+.btn-lokasi:active{
+  transform: scale(0.96);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.18);
+}
+
+/* LOADING STATE */
+.btn-lokasi.loading{
+  background: var(--border-soft);
+  color: var(--text-secondary);
+  pointer-events: none;
+  opacity: 0.95;
+  border-color: var(--border-soft);
+}
+
+/* SUCCESS STATE (pakai accent root) */
+.btn-lokasi.success{
+  background: var(--accent);
+  color: #ffffff;
+  border-color: var(--accent);
+  box-shadow: 0 10px 26px rgba(251,146,60,0.35);
+}
+
+/* ERROR STATE (ikut tema, bukan merah keras) */
+.btn-lokasi.error{
+  background: var(--card-bg);
+  color: var(--text-secondary);
+  border: 1px dashed var(--border-soft);
+  box-shadow: none;
+}
+
+.btn-google{
+  width:100%;
+  padding:14px;
+  border-radius:14px;
+  border:1px solid var(--border-soft);
+  background:var(--card-bg);
+  color:var(--text-main);
+  font-size:15px;
+  font-weight:600;
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:10px;
+  box-shadow:0 6px 16px rgba(0,0,0,0.05);
+  transition:0.2s;
+}
+
+.btn-google:active{
+  transform:scale(0.98);
+}
+
+.google-logo{
+  width:25px;
+  height:25px;
+  background:white;
+  padding:3px;
+  border-radius:50%;
+}
+
+/* ===== POPUP (IKUT ROOT & DARK MODE) ===== */
+.popup{
+  position:fixed;
+  top:0;
+  left:0;
+  width:100%;
+  height:100%;
+  display:none;
+  align-items:center;
+  justify-content:center;
+  background:rgba(0,0,0,0.25);
+  backdrop-filter: blur(6px);
+  z-index:999;
+}
+
+.popup-box{
+  background:var(--card-bg);
+  padding:22px 26px;
+  border-radius:16px;
+  text-align:center;
+  box-shadow:0 20px 40px rgba(0,0,0,0.18);
+  animation:scaleIn 0.25s ease;
+  border:1px solid var(--border-soft);
+}
+
+.loader{
+  width:36px;
+  height:36px;
+  border:4px solid var(--border-soft);
+  border-top:4px solid var(--accent);
+  border-radius:50%;
+  animation:spin 1s linear infinite;
+  margin:0 auto 12px;
+}
+
+@keyframes spin{
+  0%{transform:rotate(0deg);}
+  100%{transform:rotate(360deg);}
+}
+
+@keyframes scaleIn{
+  from{transform:scale(0.9); opacity:0;}
+  to{transform:scale(1); opacity:1;}
+}
+
+.popup-text{
+  font-weight:600;
+  color:var(--text-main);
+}

@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="SuruhBeli">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#FB923C">
+  <link rel="icon" href="ikon-512.png">
+  <link rel="stylesheet" href="register.css">
+  <title>Daftar - SuruhBeli</title>
+
+  <!-- Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.10.1/lottie.min.js"></script>
+</head>
+<body>
+
+<div class="card">
+  <div class="logo">
+    <img src="logo.png" alt="SuruhBeli">
+  </div>
+
+  <h1>Masuk SuruhBeli</h1>
+  <div class="sub">Login / Daftar otomatis</div>
+
+  <label class="label">Email</label>
+  <input 
+    type="email" 
+    id="email" 
+    class="input" 
+    placeholder="Masukkan email"
+  />
+
+  <label class="label">Password</label>
+  <input 
+    type="password" 
+    id="password" 
+    class="input" 
+    placeholder="Masukkan password"
+  />
+
+  <button class="btn-primary" onclick="openConfirmPopup()">
+    Masuk
+  </button>
+
+  <div class="divider"><span>atau</span></div>
+
+  <button class="btn-google" onclick="loginGoogle()">
+    <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" 
+         class="google-logo">
+    Masuk dengan Google
+  </button>
+</div>
+
+<!-- POPUP KONFIRMASI PASSWORD -->
+<div class="popup" id="confirmPopup">
+  <div class="popup-box">
+    <div class="popup-title">Konfirmasi Password</div>
+    <input 
+      type="password" 
+      id="confirmPassword" 
+      class="input"
+      placeholder="Masukkan ulang password"
+    />
+    <div class="popup-buttons">
+      <button class="btn-cancel" onclick="closeConfirmPopup()">Batal</button>
+      <button class="btn-ok" onclick="confirmEmailAuth()">OK</button>
+    </div>
+  </div>
+</div>
+
+  <!-- POPUP -->
+  <div class="popup" id="popup">
+    <div class="popup-box">
+      <!-- Ganti loader biasa dengan Lottie container -->
+      <div id="lottieLoader" style="width:80px; height:80px; margin:0 auto;"></div>
+      <div class="popup-text" id="popupText">
+        Mengambil lokasi...
+      </div>
+    </div>
+  </div>
+<script src="register.js"></script>
+</body>
+</html>

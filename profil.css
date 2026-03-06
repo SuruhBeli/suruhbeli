@@ -1,0 +1,400 @@
+:root{
+  /* ===== LIGHT MODE (DEFAULT SEKARANG) ===== */
+  --bg-main:#FFF7ED;
+  --text-main:#7C2D12;
+  --card-bg:#ffffff;
+  --border-soft:#FED7AA;
+  --text-secondary:#374151;
+  --text-muted:#6B7280;
+  --accent:#FB923C;
+  --active-bg:#FFF1E6;
+}
+.page-content {
+  padding-bottom: 100px;
+}
+/* ===== HERO HEADER DINAMIS ===== */
+.hero-profile{
+  width:100%;
+  height:220px; /* 🔥 sudah dilebarkan ke bawah */
+  background:#FB923C;
+  position:relative;
+  overflow:hidden;
+}
+
+.hero-profile img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  display:block;
+}
+
+/* Overlay biar teks/card tetap kebaca */
+.hero-overlay{
+  position:absolute;
+  inset:0;
+  background:linear-gradient(to bottom, rgba(0,0,0,0.1), rgba(0,0,0,0.25));
+}
+
+/* ===== FLOATING PROFILE CARD ===== */
+.profile-card{
+  position:relative;
+  margin:-70px 16px 0 16px;
+  background:var(--card-bg);
+  border-radius:22px;
+  padding:14px 16px; /* 🔥 dari 18px → 14px (lebih padat) */
+  display:flex;
+  align-items:center;
+  gap:12px; /* 🔥 dari 16px → 12px */
+
+  box-shadow:0 16px 40px rgba(0,0,0,0.15);
+  border:1px solid var(--border-soft);
+  z-index:5;
+}
+
+/* ===== AVATAR (INISIAL) ===== */
+.profile-avatar{
+  width:70px;
+  height:70px;
+  border-radius:50%;
+  background:#FB923C;
+  color:white;
+  font-size:28px;
+  font-weight:800;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  flex-shrink:0;
+}
+
+/* ===== INFO USER (JARAK BARIS DIRAPATKAN) ===== */
+.profile-info{
+  display:flex;
+  flex-direction:column;
+  gap:2px; /* 🔥 dari 6px → 2px (ini yang paling ngaruh) */
+  overflow:hidden;
+  line-height:1.2; /* 🔥 bikin teks lebih rapat */
+}
+
+.profile-name{
+  font-size:20px; /* sedikit diperkecil biar proporsional */
+  font-weight:800;
+  color:var(--text-main);
+  margin-bottom:1px; /* kontrol jarak bawah nama */
+}
+
+.profile-email{
+  font-size:15px; /* dari 14px */
+  color:var(--text-secondary);
+  word-break:break-all;
+  margin:0;
+}
+
+.profile-phone{
+  font-size:13px; /* dari 15px */
+  font-weight:600;
+  color:var(--text-secondary);
+  margin-top:1px; /* jarak halus saja */
+}
+
+/* Spacing konten bawah (nanti untuk menu pengaturan) */
+.content{
+  padding:24px 16px;
+}
+/* ===== CARD PENGATURAN ===== */
+.settings-card{
+  background:var(--card-bg);
+  border:1px solid var(--border-soft);
+  border-radius:20px;
+  padding:16px;
+  box-shadow:0 10px 25px rgba(0,0,0,0.08);
+}
+
+.settings-title{
+  font-weight:800;
+  font-size:16px;
+  margin-bottom:12px;
+  color:var(--text-main);
+}
+
+.settings-item{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:18px 16px; /* 🔥 lebih tinggi = lebih enak di tap */
+  border-radius:16px;
+  cursor:pointer;
+  transition:0.2s ease;
+  border-bottom:1px solid var(--border-soft);
+}
+/* Garis terakhir tidak ada*/
+.settings-item:last-child{
+  border-bottom:none;
+}
+.settings-item:active{
+  background:var(--bg-main);
+  transform:scale(0.98); /* efek ditekan kayak app */
+  border-bottom:1px solid #F1F5F9;
+}
+
+.settings-left{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  font-weight:800;
+  font-size:15px;
+  color:var(--text-secondary);
+  letter-spacing:0.2px;
+}
+/*SVG DAN IKON PANAH*/
+.settings-left svg{
+  flex-shrink:0;
+  width:22px;
+  height:22px;
+  color: var(--accent);
+}
+
+/* ===== POPUP OVERLAY ===== */
+.popup-overlay{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,0.45);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  z-index:999;
+  padding:16px;
+}
+
+.popup-overlay.show{
+  display:flex;
+}
+
+/* ===== POPUP EDIT ===== */
+.popup-card{
+  width:100%;
+  max-width:380px;
+  background:var(--card-bg);
+  border-radius:22px;
+  padding:22px 18px;
+  text-align:center;
+  animation:scaleIn 0.2s ease;
+}
+
+@keyframes scaleIn{
+  from{transform:scale(0.9); opacity:0;}
+  to{transform:scale(1); opacity:1;}
+}
+
+.popup-header{
+  font-size:20px;
+  font-weight:800;
+  margin-bottom:16px;
+  color:var(--text-main);
+}
+
+.edit-avatar-preview{
+  width:100px;
+  height:100px;
+  border-radius:50%;
+  background:#FB923C;
+  color:white;
+  font-size:36px;
+  font-weight:800;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  margin:0 auto 16px auto;
+  overflow:hidden;
+  box-shadow:0 4px 12px rgba(0,0,0,0.1);
+}
+
+.edit-avatar-preview img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  border-radius:50%;
+}
+
+/* ===== PHOTO OPTION LIST ===== */
+
+.photo-option-list{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+
+/* ===== OPTION ITEM ===== */
+
+.photo-option-item{
+  width:100%;
+  display:flex;
+  align-items:center;
+  gap:12px;
+
+  padding:14px;
+  border-radius:14px;
+  border:1px solid #E5E7EB;
+
+  background:white;
+  font-weight:600;
+  font-size:14px;
+  color:var(--text-main);
+
+  cursor:pointer;
+  transition:all 0.2s ease;
+}
+
+.photo-option-item:hover{
+  background:#FFF7ED;
+  border-color:#FED7AA;
+}
+
+/* ===== DELETE OPTION ===== */
+
+.photo-option-item.delete{
+  color:#DC2626;
+}
+.photo-option-item.delete:hover{
+  background:#FEE2E2;
+  border-color:#FCA5A5;
+}
+/* ===== OPTION ICON ===== */
+.option-icon{
+  width:36px;
+  height:36px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  border-radius:10px;
+  background:#FFF7ED;
+  color:#FB923C;
+}
+.option-icon svg{
+  width:20px;
+  height:20px;
+}
+
+/* DELETE ICON */
+.photo-option-item.delete .option-icon{
+  background:#FEE2E2;
+  color:#DC2626;
+}
+
+/* ===== BUTTON UPLOAD ===== */
+.btn-upload{
+  background:#FFF7ED;
+  border:1px solid #FED7AA;
+  padding:12px 18px;
+  border-radius:14px;
+  font-weight:600;
+  margin-bottom:16px;
+  cursor:pointer;
+  transition:0.2s;
+}
+.btn-upload:hover{
+  background:#FED7AA33;
+}
+
+/* ===== INPUT FIELD ===== */
+.input-field{
+  width:100%;
+  padding:14px;
+  border-radius:14px;
+  border:1px solid #E5E7EB;
+  margin-bottom:16px;
+  font-size:14px;
+  outline:none;
+}
+.input-field:focus{
+  border-color:#FB923C;
+}
+/* ===== INPUT DESCRIPTION ===== */
+.input-desc {
+  font-size: 12px;
+  color: #6B7280; /* abu lembut */
+  text-align: left;
+  margin-top: -8px; /* naik sedikit mendekati input */
+  margin-bottom: 12px;
+  font-style: italic;
+}
+
+/* Button Save */
+.btn-save{
+  width:100%;
+  padding:14px;
+  border:none;
+  border-radius:14px;
+  background:#FB923C;
+  color:white;
+  font-weight:800;
+  font-size:16px;
+}
+
+/* ===== CONFIRM POPUP ===== */
+.confirm-card{
+  position:relative; /* 🔥 KUNCI supaya img bisa keluar */
+  background:var(--card-bg);
+  border-radius:20px;
+  padding:22px 18px;
+  display:flex;
+  align-items:center;
+  max-width:360px;
+  overflow:visible; /* 🔥 biar gambar bisa keluar frame */
+}
+
+.confirm-text{
+  flex:1;
+  font-weight:700;
+  padding-right:80px; /*kasih ruang buat alert.png*/
+  color:var(--text-secondary);
+}
+
+.alert-img{
+  position:absolute;
+  right:-35px;        /* 🔥 keluar sedikit ke kanan */
+  top:-10px;          /* 🔥 kejar batas atas */
+  bottom:-10px;       /* 🔥 kejar batas bawah */
+  height:calc(100% + 20px); /* 🔥 lebih tinggi dari card */
+  width:auto;         /* jaga rasio */
+  max-width:140px;    /* batas biar tidak terlalu besar */
+  object-fit:contain;
+  pointer-events:none; /* biar tombol tetap bisa diklik */
+}
+
+.confirm-actions{
+  margin-top:12px;
+  display:flex;
+  gap:8px;
+}
+
+.btn-cancel{
+  flex:1;
+  padding:10px;
+  border-radius:10px;
+  border:1px solid #E5E7EB;
+  background:white;
+  font-weight:700;
+}
+
+.btn-ok{
+  flex:1;
+  padding:10px;
+  border-radius:10px;
+  border:none;
+  background:#FB923C;
+  color:white;
+  font-weight:800;
+}
+#btnLogout .settings-left span{
+  color:#DC2626;
+}
+/* ===== FOOTER APP VERSION ===== */
+.app-footer{
+  text-align: center;
+  font-size: 12px;
+  color: var(--text-secondary); /* abu halus */
+  padding: 2px 16px 10px;
+  opacity: 0.9;
+  letter-spacing: 0.3px;
+}

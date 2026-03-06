@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="SuruhBeli">
+<meta name="theme-color" content="#FB923C">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="ikon-512.png">
+<link rel="stylesheet" href="index.css">
+<link rel="stylesheet" href="home.css">
+<link rel="stylesheet" href="aktivitas.css">
+<link rel="stylesheet" href="chatlist.css">
+<link rel="stylesheet" href="profil.css">
+<link rel="stylesheet" href="order.css">
+<title>SuruhBeli</title>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie.min.js"></script>
+</head>
+<body>
+<div id="app">
+  <div class="logo-top">
+    <img src="logo.png" alt="Logo" />
+    <span>SuruhBeli</span>
+  </div>
+  <div class="scroll-header" id="scrollHeader"></div>
+  <div class="view active" id="view-home">
+    <div class="view-inner">
+      <div class="page-content">
+        <!-- LOGO -->
+        <div class="page-wrapper">
+          <!-- ======== HERO ======== -->
+          <div class="hero skeleton" id="heroSkeleton">
+            <img id="heroImage" alt="Hero">
+          </div>
+          <div class="container">
+            <!-- ====== BANNER TEXT ====== -->
+            <div class="banner">
+              <h2>Suruh Apa Saja</h2>
+              <p>
+                Beli makanan, belanjaan, atau antar barang ringan.
+                Bayar di tempat (COD), cepat dan khusus wilayah lokal.
+              </p>
+            </div>
+            <button class="btn-order" onclick="goOrder('umum')">
+              Buat Pesanan Sekarang
+            </button>
+            <!-- ====== LAYANAN ====== -->
+            <div class="section-title">Pilih Layanan</div>
+            <div class="grid">
+              <div class="service-card" onclick="goOrder('makanan')">
+                <div class="service-icon skeleton" id="lottie-makanan"></div>
+                <div class="service-title">Beli Makanan</div>
+              </div>
+              <div class="service-card" onclick="goOrder('belanja')">
+                <div class="service-icon skeleton" id="lottie-belanja"></div>
+                <div class="service-title">Beli Belanjaan</div>
+              </div>
+              <div class="service-card" onclick="goOrder('antar')">
+                <div class="service-icon skeleton" id="lottie-barang"></div>
+                <div class="service-title">Antar Barang</div>
+              </div>
+              <div class="service-card" onclick="goOrder('lainnya')">
+                <div class="service-icon skeleton" id="lottie-lainnya"></div>
+                <div class="service-title">Suruh Lainnya</div>
+              </div>
+            </div>
+            <!-- ===== BANNER PROMO ===== -->
+            <div class="section-title">Promo Layanan</div>
+            <div class="banner-carousel-wrapper">
+              <div class="banner-carousel-scroll" id="bannerCarousel">
+                <!-- Skeleton Banner Placeholder -->
+                <div class="skeleton" style="height:150px; border-radius:10px; width:100%;"></div>
+              </div>
+              <div class="banner-dots" id="bannerDots"></div>
+            </div>
+            <!-- ======= FOOTER ======= -->
+            <div class="footer">
+              <div id="lottieAnimation" class="lottie-cta skeleton"></div>
+              SuruhBeli • Layanan Lokal • COD • Ramah Warga
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="view" id="view-aktivitas">
+    <div class="view-inner">
+      <div class="page-content">
+        <div class="header">Pesanan</div>
+        <div class="container">
+          <!-- ===== TABS ===== -->
+          <div class="tabs">
+            <div class="tab active" data-tab="aktif">Dibuat</div>
+            <div class="tab" data-tab="diproses">Aktif</div>
+            <div class="tab" data-tab="riwayat">Riwayat</div>
+          </div>
+          <!-- ===== WRAPPER LIST ===== -->
+          <div class="orders-wrapper">
+            <!-- Loader (optional kalau mau skeleton nanti) -->
+            <div id="ordersLoader" style="display:none;"></div>
+            <!-- Orders List -->
+            <div id="ordersContainer"></div>
+            <!-- Empty State -->
+            <div id="ordersEmpty" style="display:none;">
+              Belum ada pesanan.
+            </div>
+      
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div id="popupDetail" class="popup-overlay">
+    <div class="receipt">
+      <div id="popupContent"></div>
+      <button class="close-btn" onclick="closeDetailPopup()">Tutup</button>
+    </div>
+  </div>
+  <div id="popupEdit" class="popup-overlay">
+    <div class="edit-card">
+  
+      <div class="edit-header">
+        <div class="edit-title">✏️ Edit Pesanan</div>
+        <div class="edit-close" onclick="closeEditPopup()">✕</div>
+      </div>
+  
+      <div class="edit-body">
+        <label class="edit-label">Pesanan</label>
+        <textarea id="editPesanan" class="edit-input" placeholder="Tulis pesanan..."></textarea>
+  
+        <label class="edit-label">Catatan</label>
+        <textarea id="editCatatan" class="edit-input" placeholder="Tambahkan catatan (opsional)"></textarea>
+      </div>
+  
+      <div class="edit-actions">
+        <button onclick="closeEditPopup()" class="btn-cancel">Batal</button>
+        <button onclick="saveEditOrder()" class="btn-save">Simpan</button>
+      </div>
+  
+    </div>
+  </div>
+  <div id="popupAlert" class="popup-overlay">
+    <div class="confirm-card">
+      
+      <div class="confirm-left">
+        <div id="popupAlertMessage" class="confirm-title">
+          Pesan Alert
+        </div>
+      
+        <div id="popupAlertSub" class="confirm-sub">
+          Konfirmasi tindakan
+        </div>
+      
+        <div class="confirm-buttons">
+          <button id="popupCancel" class="btn-secondary">Batal</button>
+          <button id="popupOk" class="btn-primary">OK</button>
+        </div>
+      </div>
+      
+      <img src="alert.png" class="confirm-img">
+    </div>
+  </div>
+  
+  <div class="view" id="view-chatlist">
+    <div class="view-inner">
+      <div class="page-content">
+        <div class="header">SuruhBeli</div>
+        <!-- TOP ACTION BAR (MULTI SELECT) -->
+        <div id="selectionBar" class="selection-bar">
+          <button id="cancelSelect" class="sel-btn">Batal</button>
+          <div id="selectedCount" class="sel-count">0 dipilih</div>
+        
+          <div class="sel-actions">
+            <!-- PIN (ID TIDAK DIUBAH) -->
+            <button id="pinBtn" class="sel-icon" aria-label="Pin">
+        
+              <svg fill="#000000" height="800px" width="800px" version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" 
+              	 viewBox="0 0 489.493 489.493" xml:space="preserve">
+              <path d="M485.322,117.705c12.204-12.238-3.274-47.577-34.636-78.93c-30.99-30.99-65.76-46.396-78.401-34.941l-0.246-0.236
+              	l-173.715,156.02c-32.117-27.993-80.684-27.038-111.278,3.534c-5.149,5.157-8.051,12.146-8.051,19.437
+              	c0,7.292,2.901,14.283,8.051,19.431l78.808,78.801L3.902,463.627c-5.148,5.799-5.262,14.655,0.015,20.601
+              	c5.689,6.403,15.497,6.992,21.916,1.294l182.575-162.137l7.84,7.829l40.601,40.603l0,0l30.336,30.329
+              	c5.15,5.147,12.139,8.039,19.424,8.039c7.278,0,14.272-2.898,19.419-8.056c30.561-30.573,31.524-79.158,3.539-111.27L484.771,118.03
+              	C484.927,117.892,485.177,117.861,485.322,117.705z"/>
+              </svg>
+            </button>
+        
+            <!-- DELETE (ID TIDAK DIUBAH) -->
+            <button id="deleteBtn" class="sel-icon danger" aria-label="Hapus">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="size-5">
+                <path fill-rule="evenodd" d="M8.75 1A2.75 2.75 0 0 0 6 3.75v.443c-.795.077-1.584.176-2.365.298a.75.75 0 1 0 .23 1.482l.149-.022.841 10.518A2.75 2.75 0 0 0 7.596 19h4.807a2.75 2.75 0 0 0 2.742-2.53l.841-10.52.149.023a.75.75 0 0 0 .23-1.482A41.03 41.03 0 0 0 14 4.193V3.75A2.75 2.75 0 0 0 11.25 1h-2.5ZM10 4c.84 0 1.673.025 2.5.075V3.75c0-.69-.56-1.25-1.25-1.25h-2.5c-.69 0-1.25.56-1.25 1.25v.325C8.327 4.025 9.16 4 10 4ZM8.58 7.72a.75.75 0 0 0-1.5.06l.3 7.5a.75.75 0 1 0 1.5-.06l-.3-7.5Zm4.34.06a.75.75 0 1 0-1.5-.06l-.3 7.5a.75.75 0 1 0 1.5.06l.3-7.5Z" clip-rule="evenodd" />
+              </svg>
+        
+            </button>
+          </div>
+        </div>
+        <div class="container">
+          <div class="chat-list" id="chatListContainer"></div>
+        
+          <!-- EMPTY STATE -->
+          <div class="empty-state" id="emptyState">
+            <lottie-player 
+              src="chat-empty.json"
+              background="transparent"  
+              speed="1"  
+              loop  
+              autoplay>
+            </lottie-player>
+        
+            <h3>Belum ada chat, say</h3>
+            <p>
+              Obrolan tentang transaksi, pesanan, atau antar pengguna
+              akan muncul di sini setelah kamu mulai chat.
+            </p>
+        
+            <!-- 🔥 TOMBOL AJAK TEMAN -->
+            <button id="inviteBtn" class="invite-btn">
+              Ajak teman Anda!
+            </button>
+          </div>
+        </div>
+        </div>
+        <!-- CUSTOM POPUP MODAL -->
+        <div id="popupModal" class="popup-modal" style="display:none;">
+          <div class="popup-content">
+            <p id="popupMessage">Pesan di sini</p>
+            <div class="popup-actions">
+              <button id="popupCancel">Batal</button>
+              <button id="popupConfirm">OK</button>
+            </div>
+          </div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="view" id="view-profil">
+    <div class="view-inner">
+      <div class="page-content">
+        <div class="hero-profile">
+          <img id="heroImg" src="default.png" alt="Header Profil">
+          <div class="hero-overlay"></div>
+        </div>
+        
+        <!-- ===== CARD PROFIL TIMBUL ===== -->
+        <div class="profile-card">
+        
+          <!-- FOTO PROFIL (INISIAL) -->
+          <div class="profile-avatar" id="profileAvatar">
+            U
+          </div>
+        
+          <!-- DATA USER -->
+          <div class="profile-info">
+            <div class="profile-name" id="profileName">Memuat profil...</div>
+            <div class="profile-email" id="profileEmail">-</div>
+            <div class="profile-phone" id="profilePhone">-</div>
+          </div>
+        
+        </div>
+        
+        <div class="content">
+          <!-- ===== CARD PENGATURAN ===== -->
+          <div class="settings-card">
+            <div class="settings-title">Pengaturan</div>
+            <!-- Ubah profil -->
+            <div class="settings-item" id="btnEditProfile">
+              <div class="settings-left">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-6">
+                  <path d="M21.731 2.269a2.625 2.625 0 0 0-3.712 0l-1.157 1.157 3.712 3.712 1.157-1.157a2.625 2.625 0 0 0 0-3.712ZM19.513 8.199l-3.712-3.712-8.4 8.4a5.25 5.25 0 0 0-1.32 2.214l-.8 2.685a.75.75 0 0 0 .933.933l2.685-.8a5.25 5.25 0 0 0 2.214-1.32l8.4-8.4Z" />
+                  <path d="M5.25 5.25a3 3 0 0 0-3 3v10.5a3 3 0 0 0 3 3h10.5a3 3 0 0 0 3-3V13.5a.75.75 0 0 0-1.5 0v5.25a1.5 1.5 0 0 1-1.5 1.5H5.25a1.5 1.5 0 0 1-1.5-1.5V8.25a1.5 1.5 0 0 1 1.5-1.5h5.25a.75.75 0 0 0 0-1.5H5.25Z" />
+                </svg>
+        
+                <span class="settings-text">Ubah Profil</span>
+              </div>
+              <svg class="arrow-icon" width="20" height="20" viewBox="0 0 24 24">
+                <path d="M9 6l6 6-6 6" fill="none" stroke="#9CA3AF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+          </div>
+            <!-- ===== CARD LAINNYA ===== -->
+          <div class="settings-card" style="margin-top:16px;">
+            <div class="settings-title">Lainnya</div>
+          
+            <!-- Ketentuan Layanan -->
+            <div class="settings-item" id="btnTerms">
+              <div class="settings-left">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-6">
+                    <path fill-rule="evenodd" d="M7.502 6h7.128A3.375 3.375 0 0 1 18 9.375v9.375a3 3 0 0 0 3-3V6.108c0-1.505-1.125-2.811-2.664-2.94a48.972 48.972 0 0 0-.673-.05A3 3 0 0 0 15 1.5h-1.5a3 3 0 0 0-2.663 1.618c-.225.015-.45.032-.673.05C8.662 3.295 7.554 4.542 7.502 6ZM13.5 3A1.5 1.5 0 0 0 12 4.5h4.5A1.5 1.5 0 0 0 15 3h-1.5Z" clip-rule="evenodd" />
+                    <path fill-rule="evenodd" d="M3 9.375C3 8.339 3.84 7.5 4.875 7.5h9.75c1.036 0 1.875.84 1.875 1.875v11.25c0 1.035-.84 1.875-1.875 1.875h-9.75A1.875 1.875 0 0 1 3 20.625V9.375Zm9.586 4.594a.75.75 0 0 0-1.172-.938l-2.476 3.096-.908-.907a.75.75 0 0 0-1.06 1.06l1.5 1.5a.75.75 0 0 0 1.116-.062l3-3.75Z" clip-rule="evenodd" />
+                </svg>
+        
+                <span>Ketentuan Layanan</span>
+              </div>
+              <svg class="arrow-icon" width="20" height="20" viewBox="0 0 24 24">
+                <path d="M9 6l6 6-6 6" fill="none" stroke="#9CA3AF" stroke-width="2"/>
+              </svg>
+            </div>
+          
+            <!-- Kebijakan Privasi -->
+            <div class="settings-item" id="btnPrivacy">
+              <div class="settings-left">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-6">
+                  <path fill-rule="evenodd" d="M12.516 2.17a.75.75 0 0 0-1.032 0 11.209 11.209 0 0 1-7.877 3.08.75.75 0 0 0-.722.515A12.74 12.74 0 0 0 2.25 9.75c0 5.942 4.064 10.933 9.563 12.348a.749.749 0 0 0 .374 0c5.499-1.415 9.563-6.406 9.563-12.348 0-1.39-.223-2.73-.635-3.985a.75.75 0 0 0-.722-.516l-.143.001c-2.996 0-5.717-1.17-7.734-3.08Zm3.094 8.016a.75.75 0 1 0-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 0 0-1.06 1.06l2.25 2.25a.75.75 0 0 0 1.14-.094l3.75-5.25Z" clip-rule="evenodd" />
+                </svg>
+        
+        
+                <span>Kebijakan Privasi</span>
+              </div>
+              <svg class="arrow-icon" width="20" height="20" viewBox="0 0 24 24">
+                <path d="M9 6l6 6-6 6" fill="none" stroke="#9CA3AF" stroke-width="2"/>
+              </svg>
+            </div>
+            
+            <!-- Mitra Toko -->
+            <div class="settings-item" id="btnMitraToko">
+              <div class="settings-left">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="size-5">
+                  <path d="M2.879 7.121A3 3 0 0 0 7.5 6.66a2.997 2.997 0 0 0 2.5 1.34 2.997 2.997 0 0 0 2.5-1.34 3 3 0 1 0 4.622-3.78l-.293-.293A2 2 0 0 0 15.415 2H4.585a2 2 0 0 0-1.414.586l-.292.292a3 3 0 0 0 0 4.243ZM3 9.032a4.507 4.507 0 0 0 4.5-.29A4.48 4.48 0 0 0 10 9.5a4.48 4.48 0 0 0 2.5-.758 4.507 4.507 0 0 0 4.5.29V16.5h.25a.75.75 0 0 1 0 1.5h-4.5a.75.75 0 0 1-.75-.75v-3.5a.75.75 0 0 0-.75-.75h-2.5a.75.75 0 0 0-.75.75v3.5a.75.75 0 0 1-.75.75h-4.5a.75.75 0 0 1 0-1.5H3V9.032Z" />
+                </svg>
+        
+        
+                <span>Mitra Toko</span>
+              </div>
+              <svg class="arrow-icon" width="20" height="20" viewBox="0 0 24 24">
+                <path d="M9 6l6 6-6 6" fill="none" stroke="#9CA3AF" stroke-width="2"/>
+              </svg>
+            </div>
+          
+            <!-- Ajak Teman Desa -->
+            <div class="settings-item" id="btnInvite">
+              <div class="settings-left">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-6">
+                  <path fill-rule="evenodd" d="M15.75 4.5a3 3 0 1 1 .825 2.066l-8.421 4.679a3.002 3.002 0 0 1 0 1.51l8.421 4.679a3 3 0 1 1-.729 1.31l-8.421-4.678a3 3 0 1 1 0-4.132l8.421-4.679a3 3 0 0 1-.096-.755Z" clip-rule="evenodd" />
+                </svg>
+        
+                <span>Ajak Teman Desa</span>
+              </div>
+              <svg class="arrow-icon" width="20" height="20" viewBox="0 0 24 24">
+                <path d="M9 6l6 6-6 6" fill="none" stroke="#9CA3AF" stroke-width="2"/>
+              </svg>
+            </div>
+          
+            <!-- Feedback -->
+            <div class="settings-item" id="btnFeedback">
+              <div class="settings-left">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-6">
+                <path d="M3.478 2.404a.75.75 0 0 0-.926.941l2.432 7.905H13.5a.75.75 0 0 1 0 1.5H4.984l-2.432 7.905a.75.75 0 0 0 .926.94 60.519 60.519 0 0 0 18.445-8.986.75.75 0 0 0 0-1.218A60.517 60.517 0 0 0 3.478 2.404Z" />
+              </svg>
+        
+                <span>Feedback dan Laporan</span>
+              </div>
+              <svg class="arrow-icon" width="20" height="20" viewBox="0 0 24 24">
+                <path d="M9 6l6 6-6 6" fill="none" stroke="#9CA3AF" stroke-width="2"/>
+              </svg>
+            </div>
+         
+             <!-- Tentang Aplikasi -->
+            <div class="settings-item" id="btnTentang">
+              <div class="settings-left">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-6">
+                  <path d="M11.25 5.337c0-.355-.186-.676-.401-.959a1.647 1.647 0 0 1-.349-1.003c0-1.036 1.007-1.875 2.25-1.875S15 2.34 15 3.375c0 .369-.128.713-.349 1.003-.215.283-.401.604-.401.959 0 .332.278.598.61.578 1.91-.114 3.79-.342 5.632-.676a.75.75 0 0 1 .878.645 49.17 49.17 0 0 1 .376 5.452.657.657 0 0 1-.66.664c-.354 0-.675-.186-.958-.401a1.647 1.647 0 0 0-1.003-.349c-1.035 0-1.875 1.007-1.875 2.25s.84 2.25 1.875 2.25c.369 0 .713-.128 1.003-.349.283-.215.604-.401.959-.401.31 0 .557.262.534.571a48.774 48.774 0 0 1-.595 4.845.75.75 0 0 1-.61.61c-1.82.317-3.673.533-5.555.642a.58.58 0 0 1-.611-.581c0-.355.186-.676.401-.959.221-.29.349-.634.349-1.003 0-1.035-1.007-1.875-2.25-1.875s-2.25.84-2.25 1.875c0 .369.128.713.349 1.003.215.283.401.604.401.959a.641.641 0 0 1-.658.643 49.118 49.118 0 0 1-4.708-.36.75.75 0 0 1-.645-.878c.293-1.614.504-3.257.629-4.924A.53.53 0 0 0 5.337 15c-.355 0-.676.186-.959.401-.29.221-.634.349-1.003.349-1.036 0-1.875-1.007-1.875-2.25s.84-2.25 1.875-2.25c.369 0 .713.128 1.003.349.283.215.604.401.959.401a.656.656 0 0 0 .659-.663 47.703 47.703 0 0 0-.31-4.82.75.75 0 0 1 .83-.832c1.343.155 2.703.254 4.077.294a.64.64 0 0 0 .657-.642Z" />
+                </svg>
+        
+                <span>Tentang Aplikasi</span>
+              </div>
+              <svg class="arrow-icon" width="20" height="20" viewBox="0 0 24 24">
+                <path d="M9 6l6 6-6 6" fill="none" stroke="#9CA3AF" stroke-width="2"/>
+              </svg>
+            </div>
+            
+            <!-- Keluar -->
+            <div class="settings-item" id="btnLogout">
+              <div class="settings-left">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-6">
+                  <path d="M9.97.97a.75.75 0 0 1 1.06 0l3 3a.75.75 0 0 1-1.06 1.06l-1.72-1.72v3.44h-1.5V3.31L8.03 5.03a.75.75 0 0 1-1.06-1.06l3-3ZM9.75 6.75v6a.75.75 0 0 0 1.5 0v-6h3a3 3 0 0 1 3 3v7.5a3 3 0 0 1-3 3h-7.5a3 3 0 0 1-3-3v-7.5a3 3 0 0 1 3-3h3Z" />
+                  <path d="M7.151 21.75a2.999 2.999 0 0 0 2.599 1.5h7.5a3 3 0 0 0 3-3v-7.5c0-1.11-.603-2.08-1.5-2.599v7.099a4.5 4.5 0 0 1-4.5 4.5H7.151Z" />
+                </svg>
+        
+                <span>Keluar</span>
+              </div>
+              <svg class="arrow-icon" width="20" height="20" viewBox="0 0 24 24">
+                <path d="M9 6l6 6-6 6" fill="none" stroke="#9CA3AF" stroke-width="2"/>
+              </svg>
+            </div>
+          
+          </div>
+        </div>
+        <div class="app-footer">
+          SuruhBeli versi 2.12.1
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- ===== POPUP EDIT PROFIL (GLOBAL) ===== -->
+  <div id="popupEditProfile" class="popup-overlay">
+    <div class="popup-card">
+      <div class="popup-header">
+        Edit Profil
+        <span class="popup-close" onclick="PopupManager.closeEditProfile()">✕</span>
+      </div>
+      <!-- Preview Foto -->
+      <div class="edit-avatar-preview" id="editAvatarPreview">U</div>
+      <!-- Input Foto -->
+      <input type="file" id="inputPhoto" accept="image/*" hidden>
+      <button class="btn-upload" id="btnUploadPhoto">Pilih Foto</button>
+      <!-- Input Nama -->
+      <input type="text" id="editNama" class="input-field" placeholder="Nama">
+      <!-- Input No HP -->
+      <input type="tel" id="editNoHP" class="input-field" placeholder="No HP">
+      <div class="popup-actions">
+        <button class="btn-cancel" onclick="PopupManager.closeEditProfile()">Batal</button>
+        <button class="btn-save" id="btnSaveProfile">Simpan</button>
+      </div>
+    </div>
+  </div>
+  <div id="popupPhotoOption" class="popup-overlay">
+  <div class="popup-card">
+
+    <div class="popup-header">
+      Ganti Foto Profil
+    </div>
+
+    <div class="photo-option-list">
+    
+      <button id="btnChooseGallery" class="photo-option-item">
+        
+        <span class="option-icon">
+          <svg viewBox="0 0 24 24" fill="none">
+            <path d="M3 7a2 2 0 0 1 2-2h3l2-2h4l2 2h3a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z" stroke="currentColor" stroke-width="2"/>
+            <circle cx="12" cy="13" r="3" stroke="currentColor" stroke-width="2"/>
+          </svg>
+        </span>
+    
+        <span>Pilih dari Galeri</span>
+    
+      </button>
+    
+    
+      <button id="btnDeletePhoto" class="photo-option-item delete">
+    
+        <span class="option-icon">
+          <svg viewBox="0 0 24 24" fill="none">
+            <path d="M3 6h18" stroke="currentColor" stroke-width="2"/>
+            <path d="M8 6V4h8v2" stroke="currentColor" stroke-width="2"/>
+            <path d="M6 6l1 14h10l1-14" stroke="currentColor" stroke-width="2"/>
+          </svg>
+        </span>
+    
+        <span>Hapus Foto Profil</span>
+    
+      </button>
+    
+    
+      <button id="btnCancelPhotoOption" class="btn-cancel">
+        Batal
+      </button>
+    
+    </div>
+
+  </div>
+</div>
+  <!-- ===== POPUP KONFIRMASI (CUSTOM ALERT) ===== -->
+  <div class="popup-overlay" id="confirmPopup">
+    <div class="confirm-card">
+      <div class="confirm-text">
+        Apakah sudah yakin?
+        <div class="confirm-actions">
+          <button class="btn-cancel" id="btnCancelConfirm">Batal</button>
+          <button class="btn-ok" id="btnOkConfirm">Oke</button>
+        </div>
+      </div>
+      <img src="alert.png" class="alert-img" alt="alert">
+    </div>
+  </div>
+  <!-- ===== POPUP SUKSES ===== -->
+  <div class="popup-overlay" id="successPopup">
+    <div class="confirm-card">
+      <div class="confirm-text">
+        Profil berhasil diperbarui
+        <div class="confirm-actions">
+          <button class="btn-ok" id="btnCloseSuccess">Oke</button>
+        </div>
+      </div>
+      <img src="alert.png" class="alert-img" alt="alert">
+    </div>
+  </div>
+  
+  <div class="view" id="view-order">
+    <div class="page-content">
+      <!-- HERO HEADER -->
+      <div class="hero" id="heroHeader">
+        <div class="back-btn" onclick="goBack()" title="Kembali ke Beranda">
+          <svg viewBox="0 0 24 24">
+            <path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="2" fill="none"
+              stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+      </div>
+      <div class="container">
+        <div class="card lokasi-card">
+          <div class="card-header">
+            <span><strong>Pilih Lokasi Kamu</strong></span>
+          </div>
+        </div>
+        <div class="lokasi-content">
+            <div class="lokasi-text" id="lokasiText">
+              <svg viewBox="0 0 24 24" width="20" height="20">
+                <path d="M12 2C8 2 5 5 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-4-3-7-7-7zm0 9.5a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5z"/>
+              </svg>
+              Mengambil lokasi default...
+            </div>
+        
+            <button type="button" class="btn-lokasi" id="btnAmbilLokasi"> Pakai lokasi saya saat ini
+            </button>
+          </div>
+           <!-- Teks kecil tambahan -->
+          <div class="lokasi-note">
+              *Pesanan akan diantarkan sesuai lokasi yang anda pilih*
+            </div>
+        <div class="section-title">Detail Pesanan</div>
+        
+        <div class="order-form" id="orderForm">
+      
+          <!-- PILIH LAYANAN (FORM STYLE TRIGGER) -->
+          <label>Pilih Layanan</label>
+          <div class="service-field" onclick="openServicePopup()">
+            <span id="servicePlaceholder">Pilih layanan dulu 😊</span>
+            <span class="arrow">⌄</span>
+          </div>
+      
+          <!-- PESANAN -->
+          <label for="mainOrder">Pesanan</label>
+          <textarea id="mainOrder" placeholder="Pilih layanan dulu ya 😊"></textarea>
+      
+          <!-- BELI DIMANA -->
+          <label>Beli Dimana?</label>
+          
+          <div class="custom-select" id="customDesa">
+            <div class="custom-select-trigger" id="desaTrigger">
+              Memuat daftar desa...
+              <span class="arrow">⌄</span>
+            </div>
+          
+            <div class="custom-options" id="desaOptions">
+              <!-- Diisi Firestore -->
+            </div>
+          </div>
+          
+          <select id="locationSelect" style="display:none;"></select>
+      
+          <!-- CATATAN -->
+          <label for="note">Catatan Tambahan (Biar Tidak Salah)</label>
+          <textarea id="note" placeholder="Tulis keterangan lengkap yah"></textarea>
+        </div>
+        <!-- CTA -->
+        <button class="btn-submit" onclick="submitOrder()">Kirim Pesanan</button>
+        <!-- RINGKASAN -->
+        <div class="section-title">Ringkasan</div>
+        <div class="summary" id="summaryText">
+          Belum ada order yang dipilih.
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- ===== POPUP PILIH LAYANAN ===== -->
+  <div class="service-popup" id="servicePopup">
+    <div class="service-popup-content">
+  
+      <!-- HEADER POPUP (FIXED & CENTER) -->
+      <div class="popup-header">
+        <div class="popup-title">Pilih Layanan</div>
+        <button class="popup-close" onclick="closeServicePopup()">✕</button>
+      </div>
+  
+      <div class="grid">
+        <div class="service-card" onclick="selectService('Beli Makanan')">
+          <div class="service-icon">🍛</div>
+          <div class="service-title">Beli Makanan</div>
+          <div class="service-desc">Warung, mie ayam, dll</div>
+        </div>
+  
+        <div class="service-card" onclick="selectService('Beli Belanjaan')">
+          <div class="service-icon">🛒</div>
+          <div class="service-title">Beli Belanjaan</div>
+          <div class="service-desc">Sembako & kebutuhan</div>
+        </div>
+  
+        <div class="service-card" onclick="selectService('Antar Barang')">
+          <div class="service-icon">📦</div>
+          <div class="service-title">Antar Barang</div>
+          <div class="service-desc">Barang ringan saja</div>
+        </div>
+  
+        <div class="service-card" onclick="selectService('Suruh Lainnya')">
+          <div class="service-icon">✨</div>
+          <div class="service-title">Suruh Lainnya</div>
+          <div class="service-desc">Custom permintaan</div>
+        </div>
+      </div>
+  
+    </div>
+  </div>
+  <!-- ===== POPUP CUSTOM ALERT ===== -->
+  <div id="customPopup" class="popup-overlay">
+    <div class="popup-box">
+      <div class="popup-left">
+        <div class="popup-text" id="popupMessage">
+          Pesan muncul di sini
+        </div>
+        <div id="popupActions" class="popup-actions">
+          <button id="btnOkPopup">Kirim</button>
+          <button id="btnBatalPopup">Periksa</button>
+        </div>
+      </div>
+      <img src="alert.png" class="popup-img" alt="alert">
+    </div>
+  </div>
+  <!-- ===== POPUP LIST DESA ===== -->
+  <div id="desaPopup" class="popup-overlay">
+    <div class="popup-box"
+         style="padding:16px; height:auto; min-height:200px; max-height:70vh;
+                flex-direction:column; align-items:stretch;">
+      
+      <div style="font-weight:800; font-size:18px; margin-bottom:10px;">
+        Pilih Beli Dimana
+      </div>
+      <div id="desaPopupList"
+           style="overflow-y:auto; max-height:45vh; display:flex;
+                  flex-direction:column; gap:6px;">
+        <!-- List desa -->
+      </div>
+      <button id="tutupDesaPopup"
+              style="margin-top:12px; padding:12px; border:none;
+                     border-radius:12px; font-weight:700;
+                     background: var(--card-bg);
+                     border:1px solid var(--border-soft);
+                     color: var(--text-secondary);
+                     cursor:pointer;">
+        Tutup
+      </button>
+    </div>
+  </div>  
+</div>
+
+<div class="navbar-bottom gempa-mode">
+  <div class="nav-active-circle" id="navCircle"></div>
+
+  <div class="nav-item" data-index="0" data-view="home"><svg viewBox="0 0 24 24"><path d="M11.47 3.841a.75.75 0 0 1 1.06 0l8.69 8.69a.75.75 0 1 0 1.06-1.061l-8.689-8.69a2.25 2.25 0 0 0-3.182 0l-8.69 8.69a.75.75 0 1 0 1.061 1.06l8.69-8.689Z"/><path d="m12 5.432 8.159 8.159c.03.03.06.058.091.086v6.198c0 1.035-.84 1.875-1.875 1.875H15a.75.75 0 0 1-.75-.75v-4.5a.75.75 0 0 0-.75-.75h-3a.75.75 0 0 0-.75.75V21a.75.75 0 0 1-.75.75H5.625a1.875 1.875 0 0 1-1.875-1.875v-6.198a2.29 2.29 0 0 0 .091-.086L12 5.432Z"/></svg><span>Home</span></div>
+
+  <div class="nav-item" data-index="1" data-view="aktivitas"><svg viewBox="0 0 24 24"><path d="M7.502 6h7.128A3.375 3.375 0 0 1 18 9.375v9.375a3 3 0 0 0 3-3V6.108c0-1.505-1.125-2.811-2.664-2.94a48.972 48.972 0 0 0-.673-.05A3 3 0 0 0 15 1.5h-1.5a3 3 0 0 0-2.663 1.618c-.225.015-.45.032-.673.05C8.662 3.295 7.554 4.542 7.502 6Z"/></svg><span>Aktivitas</span></div>
+
+  <div class="nav-item" data-index="2" data-view="chatlist"><svg viewBox="0 0 24 24"><path d="M4.848 2.771A49.144 49.144 0 0 1 12 2.25c2.43 0 4.817.178 7.152.52 1.978.292 3.348 2.024 3.348 3.97v6.02c0 1.946-1.37 3.678-3.348 3.97a48.901 48.901 0 0 1-3.476.383.39.39 0 0 0-.297.17l-2.755 4.133a.75.75 0 0 1-1.248 0l-2.755-4.133a.39.39 0 0 0-.297-.17 48.9 48.9 0 0 1-3.476-.384c-1.978-.29-3.348-2.024-3.348-3.97V6.741c0-1.946 1.37-3.68 3.348-3.97Z"/></svg><span>Chat</span></div>
+
+  <div class="nav-item" data-index="3" data-view="profil"><svg viewBox="0 0 24 24"><path d="M18.685 19.097A9.723 9.723 0 0 0 21.75 12c0-5.385-4.365-9.75-9.75-9.75S2.25 6.615 2.25 12a9.723 9.723 0 0 0 3.065 7.097A9.716 9.716 0 0 0 12 21.75a9.716 9.716 0 0 0 6.685-2.653ZM15.75 9a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0Z"/></svg><span>Profil</span></div>
+</div>
+
+<script src="home.js"></script>
+<script src="aktivitas.js"></script>
+<script src="chatlist.js"></script>
+<script src="profil.js"></script>
+<script src="order.js"></script>
+<script src="index.js"></script>
+
+</body>
+</html>

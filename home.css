@@ -1,0 +1,447 @@
+:root{
+  --bg-main:#FFF7ED;
+  --text-main:#7C2D12;
+  --card-bg:#ffffff;
+  --border-soft:#FED7AA;
+  --text-secondary:#374151;
+  --text-muted:#6B7280;
+  --accent:#FB923C;
+  --active-bg:#FFF1E6;
+  --banner-gradient-start:#FB923C;
+  --banner-gradient-end:#F97316;
+  --banner-shadow: rgba(251, 146, 60, 0.35);
+  --btn-shadow: rgba(251, 146, 60, 0.45);
+  --service-desc:#8a6a58;
+  --footer-text:#9a6b4f;
+  --scroll-header-bg:#FB923C;
+  --scroll-header-text:#ffffff;
+  --popup-title:#7C2D12;
+  --popup-desc:#8a6a58;
+  --dot-inactive:#ccc;
+}
+.page-content {
+  padding-bottom: 100px;
+}
+/* ===== LOGO TOP ===== */
+.logo-top {
+  position: fixed;
+  top: 6px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 5px 22px;
+  border-radius: 999px;
+  z-index: 9999;
+  background: transparent;
+}
+.logo-top::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 999px;
+  left: -34px;
+  right: -34px;
+  top: 1px;
+  bottom: 1px;
+  background: #FED7AA;
+  /* AWAL: kecil di tengah + transparan */
+  opacity: 0;
+  transform: scaleX(0.2);
+  transform-origin: center;
+  /* animasi halus, no bounce */
+  transition: 
+    opacity 0.25s ease,
+    transform 0.35s ease;
+  z-index: -1; /* di belakang teks */
+}
+.logo-top.scrolled::before {
+  opacity: 1;
+  transform: scaleX(1); /* melebar kiri & kanan dari tengah */
+}
+.logo-top img {
+  width: 28px;
+  height: 28px;
+  object-fit: cover;
+}
+.logo-top span {
+  font-weight: 700;
+  font-size: 16px;
+  color: #7C2D12;
+  white-space: nowrap;
+}
+.logo-top, #scrollHeader {
+  transition: opacity 0.25s ease;
+}
+/* ===== HEADER (non aktif) ===== */
+.scroll-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 30px;
+  background: var(--accent);
+  box-shadow: 0 1px 10px rgba(0, 0, 0, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 16px;
+  z-index: 1000;
+  border-radius: 0 0 12px 12px;
+  opacity: 0;
+  transition: opacity 0.1s ease;
+}
+
+/* ================= SKELETON BASE ================= */
+.skeleton {
+  position: relative;
+  overflow: hidden;
+  background: transparent;
+}
+
+/* ================= SHINE EFFECT ================= */
+.skeleton::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -150%;
+  width: 60%;
+  height: 100%;
+  background: linear-gradient(
+    120deg,
+    rgba(255,255,255,0) 0%,
+    var(--banner-shadow) 50%,
+    rgba(255,255,255,0) 100%
+  );
+  transform: skewX(-20deg);
+  animation: skeletonShine 2.8s infinite;
+}
+
+/* ================= ANIMATION ================= */
+@keyframes skeletonShine {
+  0% {
+    left: -150%;
+  }
+  65% {
+    left: 150%;
+  }
+  100% {
+    left: 150%;
+  }
+}
+.hero {
+  width: 100%;
+  height: 220px;
+  overflow: hidden;
+}
+
+.hero img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity .4s ease;
+}
+
+.hero-header{
+  width:100%;
+  height:220px;
+  overflow:hidden;
+}
+
+.hero-header img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  display:block;
+}
+.container {
+  padding: 16px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* ===== CARD HEADER ===== */
+.top-card {
+  background: var(--card-bg);
+  border-radius: 18px;
+  padding: 16px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+  border: 1px solid var(--border-soft);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.brand img {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  object-fit: cover;
+}
+
+.brand h1 {
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--text-main);
+}
+
+.wilayah {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-top: 2px;
+}
+
+.welcome {
+  margin-top: 10px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+/* ===== BANNER INFO ===== */
+.banner {
+  width: 100%;
+  background: #FFD100;
+  color: var(--text-main);
+  border-radius: 25px;
+  padding: 12px 20px; /* lebih nyaman dibanding 6px saja */
+  margin-top: -50px;
+  z-index: 1;
+}
+
+.banner h2 {
+  font-size: 18px;
+  margin: 0 0 4px 0; /* margin bawah lebih kecil */
+  font-weight: 800;
+  line-height: 1.2;   /* rapat */
+}
+
+.banner p {
+  font-size: 14px;
+  font-weight: 600;
+  opacity: 0.95;
+  margin: 0;          /* hilangkan margin default */
+  line-height: 1.3;   /* rapat tapi tetap nyaman dibaca */
+}
+
+/* ===== BANNER CAROUSEL SUPER PADAT (APP STYLE) ===== */
+.banner-carousel-wrapper {
+position: relative;
+overflow: hidden;
+}
+
+.banner-carousel-scroll {
+display: flex;
+gap: 10px; /* super rapat tapi masih elegan (<15 sesuai request) */
+overflow-x: auto;
+scroll-behavior: smooth;
+-webkit-overflow-scrolling: touch;
+padding: 6px 14px 12px 14px; /* padding diperkecil biar terasa full */
+scroll-snap-type: x mandatory;
+scrollbar-width: none;
+}
+
+.banner-carousel-scroll::-webkit-scrollbar {
+display: none;
+}
+
+.banner-carousel-scroll img {
+flex: 0 0 92%; /* hampir full layar (seperti Shopee/Traveloka) */
+height: 150px;
+object-fit: cover;
+border-radius: 10px; /* tidak terlalu melengkung (lebih modern) */
+scroll-snap-align: center;
+transition: transform 0.3s ease, opacity 0.3s ease, box-shadow 0.3s ease;
+transform: scale(0.96); /* samping sedikit kecil */
+opacity: 0.85;
+box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06); /* shadow sangat halus */
+}
+
+/* Banner aktif di tengah */
+.banner-carousel-scroll img.active {
+transform: scale(1);
+opacity: 1;
+box-shadow: 0 8px 20px rgba(0, 0, 0, 0.10); /* soft premium shadow */
+}
+
+/* Hover desktop (tetap ringan) */
+.banner-carousel-scroll img:hover {
+transform: scale(1.01);
+}
+
+.banner-dots {
+text-align: center;
+margin-top: 2px; /* lebih dekat ke banner (compact UI) */
+}
+
+.dot {
+display: inline-block;
+width: 6px;
+height: 6px;
+margin: 0 3px;
+background: var(--dot-inactive);
+border-radius: 50%;
+transition: all 0.25s ease;
+opacity: 0.6;
+}
+
+.dot.active {
+width: 14px; /* modern pill style tapi tidak lebay */
+border-radius: 8px;
+background: var(--accent);
+opacity: 1;
+}
+
+/* ===== TOMBOL ORDER ===== */
+.btn-order {
+  width: 60%;
+  padding: 16px;
+  border: none;
+  border-radius: 50px;
+  background: var(--accent);
+  color: var(--scroll-header-text);
+  font-size: 17px;
+  font-weight: 800;
+  cursor: pointer;
+  display: block;
+  margin: 0 auto;
+  transition: transform 0.15s ease;
+  position: relative;   /* wajib agar ::after nempel ke tombol */
+  overflow: hidden;     /* biar efek shine tidak keluar tombol */
+  animation: doubleBeat 1.2s infinite; /* detak 2x tiap 1 detik */
+}
+/* ===== SAAT DIKLIK ===== */
+.btn-order:active {
+  transform: scale(0.95);
+  animation: none; /* stop animasi detak saat ditekan */
+}
+/* ===== ANIMASI DETAK 2X (CTA FEEL) ===== */
+@keyframes doubleBeat {
+  0%   { transform: scale(1); }
+  15%  { transform: scale(1.06); }
+  30%  { transform: scale(1); }
+  45%  { transform: scale(1.04); }
+  60%  { transform: scale(1); }
+  100% { transform: scale(1); }
+}
+/* ===== SHINE EFFECT (KILAU DALAM TOMBOL) ===== */
+.btn-order::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -120%; /* mulai dari luar kiri (di dalam area clip tombol) */
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(
+    120deg,
+    transparent,
+    rgba(255,255,255,0.35),
+    transparent
+  );
+  animation: ctaShine 3s infinite;
+}
+/* ===== ANIMASI GERAK SHINE ===== */
+@keyframes ctaShine {
+  0% {
+    left: -120%; /* posisi awal (sembunyi kiri) */
+  }
+  70% {
+    left: 120%;  /* shine lewat cepat (efek "klik aku") */
+  }
+  100% {
+    left: 120%;  /* diam di kanan sampai loop ulang */
+  }
+}
+
+/* ===== GRID LAYANAN ===== */
+.section-title {
+  font-size: 16px;
+  font-weight: 800;
+  margin-top: 4px;
+}
+/* ===== GRID LAYANAN (RAPI & STABIL) ===== */
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+/* Card tetap konsisten */
+.service-card {
+  background: var(--card-bg);
+  border-radius: 18px;
+  padding: 10px 6px 12px;
+  text-align: center;
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(250, 204, 21, 0.3);
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.2s ease;
+  user-select: none;
+
+  /* 🔥 KUNCI: tinggi card stabil */
+  min-height: 150px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.service-card:active {
+  transform: scale(0.97);
+}
+
+/* Container Lottie (JANGAN diubah besar global) */
+.service-icon {
+  width: 100px;
+  height: 100px;
+  margin: 0 auto 6px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden; /* biar scale tidak merusak layout */
+}
+
+/* 🔥 KHUSUS MAKANAN (besar tapi tidak ganggu layout) */
+#lottie-makanan {
+  transform: scale(1.2);
+}
+
+/* Pastikan Lottie SVG ikut container */
+.service-icon svg,
+.service-icon canvas {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* Title tetap compact ala super app */
+.service-title {
+  font-weight: 800;
+  font-size: 13px;
+  margin-top: 4px;
+  line-height: 1.2;
+}
+
+.footer {
+  text-align: center;
+  font-size: 12px;
+  color: var(--footer-text);
+  padding-bottom: 10px;
+}
+
+/* ===== LOTTIE CTA RESPONSIVE ===== */
+.lottie-cta {
+width: 50%;         /* 50% dari container, otomatis responsif */
+max-width: 200px;   /* tidak terlalu besar di desktop */
+height: auto;       /* proporsional */
+margin: 16px auto;  /* center horizontal & jarak atas-bawah */
+}

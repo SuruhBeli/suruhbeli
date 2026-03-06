@@ -1,7 +1,7 @@
 {
   "name": "SuruhBeli",
   "short_name": "SuruhBeli",
-  "start_url": "/index.html",
+  "start_url": "index.html",
   "display": "standalone",
   "background_color": "#FB923C",
   "theme_color": "#FB923C",
